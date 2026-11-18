@@ -2997,9 +2997,9 @@ function blurVector(f, W, H) {
     var v = 0; for (k = 0; k < n; k++) v += cs[k].a * sy[k * gh + j] * (sxn[k * gw + i] + (P.sym ? sxm[k * gw + i] : 0));
     V[j * gw + i] = 0.5 + v / (4 * sg) - thr;
   }
-  var rim = blurHex(toHex(f.ink)), bg = blurHex(toHex(f.base)), dk = 1 - P.core, core = [rim[0] * dk, rim[1] * dk, rim[2] * dk];
+  var rim = blurHex(toHex(f.ink)), bg = blurHex(toHex(f.base)), dk = 1 - 0.55, core = [rim[0] * dk, rim[1] * dk, rim[2] * dk];
   function col(d) { var a = blurSS(-soft, soft, d), kk = blurSS(0, depth, d), r = [0, 0, 0], m; for (m = 0; m < 3; m++) r[m] = bg[m] + ((rim[m] + (core[m] - rim[m]) * kk) - bg[m]) * a; return r; }
-  var dlo = -soft, dhi = Math.max(soft, P.core > 0.001 ? depth : soft), S = 600, cum = [0], prev = col(dlo), K = Math.max(4, P.lv);
+  var dlo = -soft, dhi = Math.max(soft, depth), S = 600, cum = [0], prev = col(dlo), K = Math.max(4, P.lv);
   for (i = 1; i <= S; i++) { var cc = col(dlo + (dhi - dlo) * i / S); cum.push(cum[i - 1] + Math.abs(cc[0] - prev[0]) + Math.abs(cc[1] - prev[1]) + Math.abs(cc[2] - prev[2]) + 1e-6); prev = cc; }
   var tot = cum[S], bounds = [dlo], q = 0;
   for (k = 1; k < K; k++) { var target = tot * k / K; while (q < S && cum[q] < target) q++; bounds.push(dlo + (dhi - dlo) * q / S); }
@@ -3023,7 +3023,6 @@ EFFECTS.push({
     { id: 'level', label: 'Quantitat de color', min: 10, max: 90, value: 44, div: 100, fmt: 'pct', hint: 'Amb poc color queden taques aïllades; amb molt, tot s\'omple i només queden obertures.' },
     { id: 'soft', label: 'Difuminat de la vora', min: 1, max: 30, value: 7, div: 100, fmt: 'pct', hint: 'Amplada de la transició entre la taca i el fons.' },
     { id: 'depth', label: 'Profunditat del cor', min: 3, max: 50, value: 26, div: 100, fmt: 'pct', hint: 'Quant s\'endinsa la vora clara cap al cor fosc.' },
-    { id: 'core', label: 'Foscor del cor', min: 0, max: 90, value: 55, div: 100, fmt: 'pct', hint: 'Quant s\'enfosqueix el color del cor respecte a la vora. A 0, la taca té un sol to.' },
     { id: 'detail', label: 'Detall', min: 0, max: 100, value: 40, div: 100, fmt: 'pct', hint: 'Més detall afegeix punts, estrangulaments i ramificacions petites.' },
     { id: 'sym', label: 'Simetria esquerra-dreta', min: 0, max: 1, value: 0, div: 1, fmt: 'int', hint: '1 = la composició és un mirall. 0 = lliure.' },
     { id: 'speed', label: 'Moviment continu', min: 0, max: 300, value: 70, div: 100, fmt: 'pct', hint: 'Evolució de base de les taques, sempre en marxa.' },
@@ -3037,16 +3036,16 @@ EFFECTS.push({
     { id: 'tide', label: 'Marea (volum): més color amb més volum', kind: 'level', src: 'loud', amt: 25, max: 100, smooth: 0.3 }
   ],
   presets: [
-    ['Taques', { scale: 80, level: 44, soft: 7, depth: 26, core: 55, detail: 40, sym: 0, speed: 70, step: 90, burst: 20, seed: 8 }],
-    ['Suau', { scale: 70, level: 55, soft: 14, depth: 30, core: 45, detail: 15, sym: 0, speed: 60, step: 80, burst: 25, seed: 3 }],
-    ['Petites', { scale: 170, level: 42, soft: 4, depth: 16, core: 60, detail: 70, sym: 0, speed: 90, step: 100, burst: 15, seed: 14 }],
-    ['Mirall', { scale: 80, level: 44, soft: 7, depth: 26, core: 55, detail: 40, sym: 1, speed: 70, step: 90, burst: 20, seed: 11 }]
+    ['Taques', { scale: 80, level: 44, soft: 7, depth: 26, detail: 40, sym: 0, speed: 70, step: 90, burst: 20, seed: 8 }],
+    ['Suau', { scale: 70, level: 55, soft: 14, depth: 30, detail: 15, sym: 0, speed: 60, step: 80, burst: 25, seed: 3 }],
+    ['Petites', { scale: 170, level: 42, soft: 4, depth: 16, detail: 70, sym: 0, speed: 90, step: 100, burst: 15, seed: 14 }],
+    ['Mirall', { scale: 80, level: 44, soft: 7, depth: 26, detail: 40, sym: 1, speed: 70, step: 90, burst: 20, seed: 11 }]
   ],
-  rand: { scale: [60, 170], level: [35, 65], soft: [3, 14], depth: [14, 35], core: [30, 75], detail: [10, 80], sym: [0, 1], seed: [0, 99] },
+  rand: { scale: [60, 170], level: [35, 65], soft: [3, 14], depth: [14, 35], detail: [10, 80], sym: [0, 1], seed: [0, 99] },
   preview: function (S, P) { var T = S.times('flow'); return T.length > 5 ? T[5] + 0.2 : 3.2; },
   frame: function (t, P, S) {
     var steps = kalSteps(S, 'flow', t, P.burst), tide = S.amt('tide') * (S.sig('tide', t) - 0.4) * 0.5;
-    return { t: t, steps: steps, tide: tide, P: { scale: P.scale, level: P.level, soft: P.soft, depth: P.depth, core: P.core, detail: P.detail, sym: P.sym | 0, speed: P.speed, step: P.step, seed: P.seed, lv: P.lv | 0 }, ink: P.ink, base: P.base };
+    return { t: t, steps: steps, tide: tide, P: { scale: P.scale, level: P.level, soft: P.soft, depth: P.depth, core: 0.55, detail: P.detail, sym: P.sym | 0, speed: P.speed, step: P.step, seed: P.seed, lv: P.lv | 0 }, ink: P.ink, base: P.base };
   },
   scene: function (f, W, H) {
     var live = (typeof window !== 'undefined' && window.__live === true);
@@ -3060,7 +3059,7 @@ EFFECTS.push({
       sig2 += c.a * c.a / 4;
     }
     var sg = Math.sqrt(sig2 * (P.sym ? 2 : 1)), thr = 0.5 + (0.5 - Math.max(0.05, Math.min(0.95, P.level + f.tide))) * 0.55, soft = P.soft * 0.6, depth = P.depth;
-    var rim = blurHex(toHex(f.ink)), bg = blurHex(toHex(f.base)), dk = 1 - P.core, core = [rim[0] * dk, rim[1] * dk, rim[2] * dk], data = new Uint8ClampedArray(rw * rh * 4);
+    var rim = blurHex(toHex(f.ink)), bg = blurHex(toHex(f.base)), dk = 1 - 0.55, core = [rim[0] * dk, rim[1] * dk, rim[2] * dk], data = new Uint8ClampedArray(rw * rh * 4);
     for (var yy = 0; yy < rh; yy++) for (var xx = 0; xx < rw; xx++) {
       var v = 0;
       for (var k = 0; k < n; k++) v += cs[k].a * sy[k * rh + yy] * (sxn[k * rw + xx] + (P.sym ? sxm[k * rw + xx] : 0));
@@ -3087,201 +3086,6 @@ function glBase(P, X, Y, cyc, drift) {
   }
   return v;
 }
-
-
-/* ===== Pixels 26: graella de cel·les grans (proporció 4:5) de dos colors; un camp de soroll que evoluciona les fa canviar d'una en una amb un esvaïment molt curt ===== */
-function pxFade(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
-function pxNoise(x, y, z, sd) {
-  var ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z), fx = pxFade(x - ix), fy = pxFade(y - iy), fz = pxFade(z - iz), v = [], a, b, c;
-  for (c = 0; c < 2; c++) for (b = 0; b < 2; b++) for (a = 0; a < 2; a++) v.push(hash01((ix + a) * 131 + (iy + b) * 1031 + sd * 7919, iz + c + 5000));
-  var x00 = v[0] + (v[1] - v[0]) * fx, x10 = v[2] + (v[3] - v[2]) * fx, x01 = v[4] + (v[5] - v[4]) * fx, x11 = v[6] + (v[7] - v[6]) * fx;
-  var y0 = x00 + (x10 - x00) * fy, y1 = x01 + (x11 - x01) * fy;
-  return y0 + (y1 - y0) * fz;
-}
-EFFECTS.push({
-  id: 'pixels26', name: 'Pixels 26', colors: ['#D0D0D0', '#7BE368'],
-  params: [
-    { id: 'cols', label: 'Cel·les en horitzontal', min: 200, max: 1800, value: 687, div: 100, fmt: 'd2', hint: 'Quantes cel·les caben d\'ample. Pot ser fraccionari: la graella queda retallada a les vores, com al referent.' },
-    { id: 'aspect', label: 'Proporció de la cel·la (alt/ample)', min: 60, max: 200, value: 125, div: 100, fmt: 'd2', hint: '1,25 = cel·les de 4:5, com al referent. 1 = quadrades.' },
-    { id: 'offx', label: 'Desplaçament horitzontal de la graella', min: 0, max: 100, value: 30, div: 100, fmt: 'pct' },
-    { id: 'offy', label: 'Desplaçament vertical de la graella', min: 0, max: 100, value: 90, div: 100, fmt: 'pct' },
-    { id: 'dens', label: 'Quantitat de gris', min: 10, max: 80, value: 46, div: 100, fmt: 'pct', hint: 'Proporció de cel·les del color de la tinta (la grisa al referent).' },
-    { id: 'clump', label: 'Mida dels grups', min: 50, max: 400, value: 160, div: 100, fmt: 'd2', hint: 'Baix = cel·les soltes i salpebrades. Alt = grups grans de cel·les iguals.' },
-    { id: 'speed', label: 'Velocitat de canvi', min: 0, max: 400, value: 60, div: 100, fmt: 'd2', hint: 'Quantes cel·les canvien per segon, sempre en marxa. A 0 només canvien amb els pols.' },
-    { id: 'fade', label: 'Esvaïment del canvi', min: 0, max: 60, value: 5, div: 1000, fmt: 'd2', hint: 'A 0 el canvi és sec; amb poc, la cel·la passa un instant per un to intermedi.' },
-    { id: 'step', label: 'Ràfega per pols', min: 0, max: 200, value: 40, div: 100, fmt: 'd2', hint: 'Quantes cel·les es reordenen de cop amb cada pols. 0 = el ritme no hi influeix.' },
-    { id: 'burst', label: 'Durada de la ràfega', min: 3, max: 60, value: 8, div: 100, fmt: 's2' },
-    { id: 'seed', label: 'Llavor', min: 0, max: 99, value: 4, div: 1, fmt: 'int' }
-  ],
-  bindings: [
-    { id: 'kick', label: 'Cada pols reordena cel·les', kind: 'pulse', src: 'onset', amt: 100, max: 200 },
-    { id: 'gray', label: 'El volum fa créixer el gris', kind: 'level', src: 'loud', amt: 25, max: 100, smooth: 0.2 }
-  ],
-  presets: [
-    ['Pixels 26', { cols: 687, aspect: 125, offx: 30, offy: 90, dens: 46, clump: 160, speed: 60, fade: 5, step: 40, burst: 8, seed: 4 }],
-    ['Fina', { cols: 1300, aspect: 125, offx: 30, offy: 90, dens: 42, clump: 200, speed: 80, fade: 5, step: 35, burst: 8, seed: 9 }],
-    ['Gran', { cols: 400, aspect: 125, offx: 30, offy: 90, dens: 40, clump: 130, speed: 50, fade: 5, step: 45, burst: 10, seed: 2 }],
-    ['Ràpid', { cols: 687, aspect: 125, offx: 30, offy: 90, dens: 40, clump: 120, speed: 180, fade: 5, step: 60, burst: 6, seed: 4 }]
-  ],
-  rand: { cols: [350, 1300], aspect: [90, 150], dens: [25, 55], clump: [90, 300], speed: [40, 220], seed: [0, 99] },
-  preview: function (S, P) { var T = S.times('kick'); return T.length > 4 ? T[4] + 0.1 : 2.5; },
-  frame: function (t0, P, S) {
-    var t = t0 + S.loops() * S.dur(), tn = t * P.speed + kalSteps(S, 'kick', t0, P.burst) * P.step, dens = Math.max(0.05, Math.min(0.95, P.dens + S.amt('gray') * (S.sig('gray', t0) - 0.4) * 0.3));
-    return { tn: tn, P: { cols: P.cols, aspect: P.aspect, offx: P.offx, offy: P.offy, dens: dens, clump: P.clump, fade: P.fade, seed: P.seed | 0 }, ink: P.ink, base: P.base };
-  },
-  scene: function (f, W, H) {
-    var P = f.P, cw = W / P.cols, chh = cw * P.aspect, thr = 0.5 - (P.dens - 0.5) * 0.5, band = Math.max(0.0005, P.fade), ci = f.ink, cb = f.base, ox = P.offx * cw, oy = P.offy * chh, full = [], mids = [], i, j, n = 0;
-    var i0 = -1, i1 = Math.ceil(P.cols) + 1, j0 = -1, j1 = Math.ceil(H / chh) + 1;
-    for (j = j0; j <= j1; j++) for (i = i0; i <= i1; i++) {
-      var nx = i / P.clump, ny = j / P.clump, v = 0.5 + (0.68 * pxNoise(nx, ny, f.tn * 0.5, P.seed) + 0.32 * pxNoise(nx * 2.3 + 11, ny * 2.3 + 7, f.tn * 0.9 + 3, P.seed + 17) - 0.5) * 2.4, g = (v - thr) / band * 0.5 + 0.5;
-      if (g <= 0.004) continue;
-      var x = ox + i * cw, y = oy + j * chh - chh, rect = 'M' + r2(x) + ',' + r2(y) + 'h' + r2(cw) + 'v' + r2(chh) + 'h' + r2(-cw) + 'Z';
-      if (g >= 0.996) { full.push(rect); n++; }
-      else { var m = [cb[0] + (ci[0] - cb[0]) * g, cb[1] + (ci[1] - cb[1]) * g, cb[2] + (ci[2] - cb[2]) * g]; mids.push({ d: rect, fill: toHex(m) }); }
-    }
-    var items = [{ d: full.join(''), fill: toHex(f.ink) }].concat(mids);
-    return { bg: toHex(f.base), items: items, note: n + ' cel·les + ' + mids.length + ' en transició' };
-  }
-});
-
-
-/* ===== Degradat 26: bandes verticals de dos colors amb vores molt difuses; l'amplada respira i el centre balanceja. La vora s'esborrona més com més ràpid es mou ===== */
-function dgBand(P, tau, k, n) {
-  var tk = tau + k * P.stagger, w = 2 * Math.PI / P.period, ex = (Math.cos(2 * Math.PI * (tk - 3.6) / P.sway_p) + 1) / 2, c = 0.445 - P.sway * Math.pow(ex, 1.5), h = P.width + P.breathe * Math.cos(w * (tk - 2.0));
-  return [(k + 0.5) / n + (c - 0.5) / n, Math.max(0.004, h) / n];
-}
-EFFECTS.push({
-  id: 'degradat26', name: 'Degradat 26', colors: ['#FE6B6B', '#D0D0D0'],
-  params: [
-    { id: 'bands', label: 'Nombre de bandes', min: 1, max: 8, value: 1, div: 1, fmt: 'int', hint: 'Cada banda respira pel seu compte, una mica desfasada de la veïna.' },
-    { id: 'dir', label: 'Direcció (0 = verticals, 1 = horitzontals)', min: 0, max: 1, value: 0, div: 1, fmt: 'int' },
-    { id: 'width', label: 'Amplada mitjana', min: 5, max: 50, value: 30, div: 100, fmt: 'pct', hint: 'Mitja amplada de la banda al punt mitjà de la respiració.' },
-    { id: 'breathe', label: 'Respiració', min: 0, max: 40, value: 22, div: 100, fmt: 'pct', hint: 'Quant s\'eixampla i s\'estreny la banda. A dalt de tot cobreix tota la imatge; a baix gairebé desapareix.' },
-    { id: 'period', label: 'Durada de la respiració (s)', min: 1, max: 12, value: 3, div: 1, fmt: 'int' },
-    { id: 'sway', label: 'Balanceig del centre', min: 0, max: 40, value: 22, div: 100, fmt: 'pct', hint: 'De tant en tant la banda es desplaça cap a un costat mentre s\'estreny.' },
-    { id: 'sway_p', label: 'Durada del balanceig (s)', min: 2, max: 20, value: 7, div: 1, fmt: 'int' },
-    { id: 'soft', label: 'Difuminat de la vora', min: 1, max: 40, value: 14, div: 100, fmt: 'pct', hint: 'Amplada base de la transició entre els dos colors.' },
-    { id: 'smear', label: 'Esborronament pel moviment', min: 0, max: 100, value: 70, div: 100, fmt: 'pct', hint: 'La vora s\'esborrona més com més ràpid es mou: queda definida quan s\'atura i molt difusa quan va a tota velocitat.' },
-    { id: 'stagger', label: 'Desfasament entre bandes (s)', min: 0, max: 300, value: 70, div: 100, fmt: 'd2' },
-    { id: 'speed', label: 'Velocitat', min: 0, max: 300, value: 100, div: 100, fmt: 'pct', hint: 'Velocitat de fons de la respiració.' },
-    { id: 'step', label: 'Empenta per pols', min: 0, max: 100, value: 25, div: 100, fmt: 'pct', hint: 'Fracció de la durada de la respiració que avança amb cada pols.' },
-    { id: 'burst', label: 'Durada de l\'empenta', min: 5, max: 100, value: 40, div: 100, fmt: 's2' }
-  ],
-  bindings: [
-    { id: 'kick', label: 'Cada pols empeny la respiració', kind: 'pulse', src: 'onset', amt: 100, max: 200 },
-    { id: 'blur', label: 'El volum esborrona les vores', kind: 'level', src: 'loud', amt: 30, max: 100, smooth: 0.2 }
-  ],
-  presets: [
-    ['Degradat 26', { bands: 1, dir: 0, width: 30, breathe: 22, period: 3, sway: 22, sway_p: 7, soft: 14, smear: 70, stagger: 70, speed: 100, step: 25, burst: 40 }],
-    ['Tres bandes', { bands: 3, dir: 0, width: 28, breathe: 22, period: 3, sway: 12, sway_p: 7, soft: 8, smear: 45, stagger: 100, speed: 100, step: 25, burst: 40 }],
-    ['Persianes', { bands: 6, dir: 1, width: 30, breathe: 20, period: 3, sway: 6, sway_p: 8, soft: 6, smear: 40, stagger: 60, speed: 100, step: 25, burst: 40 }],
-    ['Nítid', { bands: 2, dir: 0, width: 30, breathe: 22, period: 3, sway: 15, sway_p: 7, soft: 2, smear: 10, stagger: 80, speed: 100, step: 25, burst: 40 }]
-  ],
-  rand: { bands: [1, 5], width: [15, 40], breathe: [10, 36], period: [2, 6], sway: [0, 30], soft: [3, 20], smear: [10, 80], stagger: [0, 200] },
-  preview: function (S, P) { var T = S.times('kick'); return T.length > 4 ? T[4] + 0.2 : 2.5; },
-  frame: function (t0, P, S) {
-    var t = t0 + S.loops() * S.dur(), tau = t * P.speed + kalSteps(S, 'kick', t0, P.burst) * P.step * P.period, sm = P.smear * (1 + S.amt('blur') * S.sig('blur', t0) * 2);
-    return { tau: tau, P: { bands: P.bands | 0, dir: P.dir | 0, width: P.width, breathe: P.breathe, period: P.period, sway: P.sway, sway_p: P.sway_p, soft: P.soft, smear: sm, stagger: P.stagger }, ink: P.ink, base: P.base };
-  },
-  scene: function (f, W, H) {
-    var P = f.P, n = Math.max(1, P.bands), M = 240, i, k, stops = [], dt = 0.02, bd = [], bd2 = [], bd0 = [];
-    for (k = 0; k < n; k++) { bd.push(dgBand(P, f.tau, k, n)); bd2.push(dgBand(P, f.tau + dt, k, n)); bd0.push(dgBand(P, f.tau - dt, k, n)); }
-    for (i = 0; i <= M; i++) {
-      var x = i / M, pv = 0;
-      for (k = 0; k < n; k++) {
-        var c = bd[k][0], h = bd[k][1], e1 = c - h, e2 = c + h, v1 = Math.abs(((bd2[k][0] - bd2[k][1]) - (bd0[k][0] - bd0[k][1])) / (2 * dt)), v2 = Math.abs(((bd2[k][0] + bd2[k][1]) - (bd0[k][0] + bd0[k][1])) / (2 * dt));
-        var w1 = Math.max(0.004, (P.soft * (0.6 + 0.8 * Math.min(1, Math.max(0, e1)))) + P.smear * v1 * 0.9), w2 = Math.max(0.004, (P.soft * (0.6 + 0.8 * Math.min(1, Math.max(0, e2)))) + P.smear * v2 * 0.9);
-        var a = Math.max(0, Math.min(1, (x - e1) / w1 + 0.5)), b = Math.max(0, Math.min(1, (e2 - x) / w2 + 0.5)), q = (a * a * (3 - 2 * a)) * (b * b * (3 - 2 * b));
-        if (q > pv) pv = q;
-      }
-      stops.push([x, toHex([f.base[0] + (f.ink[0] - f.base[0]) * pv, f.base[1] + (f.ink[1] - f.base[1]) * pv, f.base[2] + (f.ink[2] - f.base[2]) * pv])]);
-    }
-    var rect = 'M0,0L' + W + ',0L' + W + ',' + H + 'L0,' + H + 'Z';
-    return { bg: toHex(f.base), items: [{ d: rect, fill: toHex(f.base), lin: P.dir === 0 ? { p0: [0, 0], p1: [W, 0], stops: stops } : { p0: [0, 0], p1: [0, H], stops: stops } }], note: n + ' bandes' };
-  }
-});
-
-
-/* ===== Fletxes 26: files de rombes llargs i prims (fletxes) que travessen la imatge, una pasada per pols, amb retard de fila en fila ===== */
-EFFECTS.push({
-  id: 'fletxes26', name: 'Fletxes 26', colors: ['#7BE368', '#D0D0D0'],
-  params: [
-    { id: 'orient', label: 'Orientació (0 = horitzontal, 1 = vertical)', min: 0, max: 1, value: 1, div: 1, fmt: 'int', hint: '1 = les fletxes giren 90° i la pasada va de dalt a baix (o de baix a dalt).' },
-    { id: 'forma', label: 'Forma (0 = punxa al davant i al darrere, 1 = punxa al davant i cua plana)', min: 0, max: 1, value: 0, div: 1, fmt: 'int', hint: '0 = rombe llarg, amb punxa al davant i al darrere (com al referent). 1 = només punxa al davant i una cua plana al darrere.' },
-    { id: 'rows', label: 'Files / columnes', min: 400, max: 4000, value: 1378, div: 100, fmt: 'd2', hint: 'Fletxes en paral·lel al costat curt de la imatge. En horitzontal i en vertical la fletxa té exactament la mateixa mida: una és l\'altra girada 90°.' },
-    { id: 'offy', label: 'Desplaçament vertical', min: 0, max: 100, value: 40, div: 100, fmt: 'pct' },
-    { id: 'taper', label: 'Gruix de la fletxa', min: 5, max: 80, value: 30, div: 1000, fmt: 'pct', hint: 'Angle de la punxa: com més alt, més gruixuda és la fletxa en créixer.' },
-    { id: 'length', label: 'Llargada de la fletxa', min: 100, max: 900, value: 385, div: 100, fmt: 'd2', hint: 'En amples de la imatge. Amb 3,85 la fletxa és més llarga que la imatge i, al mig de la pasada, cada fila queda com una barra una mica trapezoïdal.' },
-    { id: 'lag', label: 'Retard entre files', min: 0, max: 50, value: 14, div: 100, fmt: 'd2', hint: 'Cada fila va una mica endarrerida respecte a l\'anterior: dibuixa la diagonal de la pasada.' },
-    { id: 'dur', label: 'Durada màxima de la pasada (s)', min: 30, max: 300, value: 100, div: 100, fmt: 'd2', hint: 'Si el següent pols arriba abans, la pasada s\'escurça per acabar a temps (i va més ràpida).' },
-    { id: 'minpass', label: 'Durada mínima de la pasada (s)', min: 10, max: 150, value: 35, div: 100, fmt: 'd2', hint: 'Els pulsos que arriben abans d\'acabar-la es descarten: cada pasada és sencera.' },
-    { id: 'gap', label: 'Pausa de gris entre pasades (s)', min: 0, max: 100, value: 12, div: 100, fmt: 'd2', hint: 'Moment amb la composició tota grisa, sense cap forma, abans de la pasada següent.' },
-    { id: 'ease', label: 'Suavitat de la velocitat', min: 0, max: 100, value: 25, div: 100, fmt: 'pct', hint: '0 = velocitat constant. Amb més, la pasada accelera i frena una mica.' },
-    { id: 'every', label: 'Una pasada cada N pulsos', min: 1, max: 8, value: 1, div: 1, fmt: 'int' },
-    { id: 'dir', label: 'Sentit (0 = de dalt a baix o d\'esquerra a dreta, 1 = al revés)', min: 0, max: 1, value: 0, div: 1, fmt: 'int' },
-    { id: 'flipy', label: 'Ordre de les fletxes (0 = en un sentit, 1 = a l\'invers)', min: 0, max: 1, value: 0, div: 1, fmt: 'int' }
-  ],
-  bindings: [
-    { id: 'pass', label: 'Cada pols llança una pasada de fletxes', kind: 'pulse', src: 'onset_bass', amt: 100, max: 200 }
-  ],
-  presets: [
-    ['Fletxes 26', { orient: 1, forma: 0, rows: 1378, offy: 40, taper: 30, length: 385, lag: 14, dur: 100, minpass: 35, gap: 12, ease: 25, every: 1, dir: 0, flipy: 0 }],
-    ['Fines i ràpides', { orient: 1, forma: 0, rows: 2400, offy: 40, taper: 20, length: 300, lag: 8, dur: 70, minpass: 25, gap: 10, ease: 20, every: 1, dir: 0, flipy: 0 }],
-    ['Gruixudes', { orient: 1, forma: 0, rows: 720, offy: 40, taper: 45, length: 300, lag: 20, dur: 120, minpass: 40, gap: 15, ease: 30, every: 1, dir: 1, flipy: 0 }],
-    ['Cap amunt', { orient: 1, forma: 0, rows: 1378, offy: 40, taper: 30, length: 385, lag: 14, dur: 100, minpass: 35, gap: 12, ease: 25, every: 2, dir: 1, flipy: 0 }],
-    ['Horitzontal', { orient: 0, forma: 0, rows: 1722, offy: 40, taper: 30, length: 385, lag: 14, dur: 100, minpass: 35, gap: 12, ease: 25, every: 1, dir: 0, flipy: 0 }]
-  ],
-  rand: { rows: [800, 3000], taper: [15, 50], length: [200, 500], lag: [5, 30], dur: [60, 160], ease: [0, 60], dir: [0, 1], flipy: [0, 1] },
-  preview: function (S, P) { var T = S.times('pass'); return T.length > 3 ? T[3] + 0.5 : 2.2; },
-  frame: function (t0, P, S) {
-    var ages = [], amt = S.amt('pass'), Tm = S.times('pass'), gap = P.gap, mp = P.minpass, ev = (P.every | 0) || 1, i;
-    if (amt > 0.001 && Tm.length > 0) {
-      var acc = [], last = -1e9, c = 0;
-      for (i = 0; i < Tm.length; i++) { if (i % ev !== 0) continue; if (Tm[i] - last >= mp + gap) { acc.push(Tm[i]); last = Tm[i]; } if (Tm[i] > t0 + P.dur + gap + 1) break; }
-      var k = -1; for (i = 0; i < acc.length; i++) { if (acc[i] <= t0) k = i; else break; }
-      if (k >= 0) {
-        var nx = k + 1 < acc.length ? acc[k + 1] : 1e9, dk = Math.max(mp, Math.min(P.dur, nx - acc[k] - gap)), a = (t0 - acc[k]) / dk;
-        if (a >= 0 && a < 1) ages.push(a);
-      }
-    } else { var per = P.dur + gap, ph = ((t0 % per) + per) % per, a2 = ph / P.dur; if (a2 < 1) ages.push(a2); }
-    return { ages: ages, P: { rows: P.rows, offy: P.offy, taper: P.taper, length: P.length, lag: P.lag, ease: P.ease, dir: P.dir | 0, flipy: P.flipy | 0, orient: P.orient | 0, forma: P.forma | 0 }, ink: P.ink, base: P.base };
-  },
-  scene: function (f, W, H) {
-    var P = f.P, V = P.orient === 1, Wt = V ? H : W, Hc = V ? W : H, Mn = Math.min(W, H), U = 0.8 * Mn, ext = Wt / U, pitch = Mn / P.rows, nrow = Hc / pitch, d = [], total = ext + P.length + P.lag * Math.ceil(nrow), i, k, cnt = 0, rowsN = Math.ceil(nrow) + 2;
-    if (!f.ages.length) return { bg: toHex(f.base), items: [], note: 'cap fletxa' };
-    for (i = -1; i < rowsN; i++) {
-      var yc = (i + P.offy) * pitch, j = P.flipy ? Math.ceil(nrow) - 1 - i : i;
-      for (k = 0; k < f.ages.length; k++) {
-        var u = f.ages[k], e = u + P.ease * (u * u * (3 - 2 * u) - u), L = e * total - P.lag * j, R = L - P.length, s = P.taper;
-        if (L <= 0 || R >= ext) continue;
-        var top = [], bot = [], q, xs;
-        if (P.forma === 1) {
-          var Tcap = pitch * 0.8, lo = Math.max(0, R), hi = Math.min(ext, L), kx = L - Tcap / s;
-          xs = [lo, hi]; if (kx > lo && kx < hi) xs.push(kx);
-          xs.sort(function (a, b) { return a - b; });
-          for (q = 0; q < xs.length; q++) {
-            var x1 = xs[q], T1 = Math.min(Tcap, Math.max(0, s * (L - x1)) * U), X1 = P.dir ? Wt - x1 * U : x1 * U;
-            top.push([X1, yc - T1 / 2]); bot.push([X1, yc + T1 / 2]);
-          }
-        } else {
-          xs = [0, ext];
-          if (R > 0 && R < ext) xs.push(R);
-          if (L > 0 && L < ext) xs.push(L);
-          var pk = (L + R) / 2; if (pk > 0 && pk < ext) xs.push(pk);
-          xs.sort(function (a, b) { return a - b; });
-          for (q = 0; q < xs.length; q++) {
-            var x = xs[q], T = Math.max(0, s * Math.min(x - R, L - x)) * U; T = Math.min(T, pitch * 0.96);
-            var X = P.dir ? Wt - x * U : x * U;
-            top.push([X, yc - T / 2]); bot.push([X, yc + T / 2]);
-          }
-        }
-        var pts = top.concat(bot.reverse());
-        d.push('M' + pts.map(function (p) { return V ? r2(p[1]) + ',' + r2(p[0]) : r2(p[0]) + ',' + r2(p[1]); }).join('L') + 'Z'); cnt++;
-      }
-    }
-    return { bg: toHex(f.base), items: [{ d: d.join(''), fill: toHex(f.ink) }], note: cnt + ' fletxes' };
-  }
-});
 
 
 /* ===== Triangles 26: graella de cel·les rectangulars tallades per una diagonal que gira cap a un estat ample i torna, en un cicle global per pols ===== */
@@ -4001,7 +3805,7 @@ EFFECTS.push({
   var PO = { active: false, fmt: 'ig', W: 1080, H: 1382, layout: 'T1B2', d1: 0.42, d2: 0.5, sel: 0, zones: [], over: null, overUrl: '', playing: false, offset: 0, startAt: 0, raf: 0, exporting: false, live: true, cancel: false, master: null, shown: false };
   var FORMATS = { ig: [1080, 1382], ig45: [1080, 1350], story: [1080, 1920], sq: [1080, 1080], p23: [1080, 1620] };
   var LAYOUTS = [['T1B2', 'Una franja a dalt, dues a sota', 0.42, 0.5], ['T2B1', 'Dues franges a dalt, una a sota', 0.7, 0.75], ['L1R2', 'Una a l\'esquerra, dues a la dreta', 0.5, 0.5], ['L2R1', 'Dues a l\'esquerra, una a la dreta', 0.5, 0.5], ['H3', 'Tres bandes horitzontals', 0.33, 0.66], ['V3', 'Tres columnes', 0.33, 0.66]];
-  var ZDEF = [['blur', '#FE6B6B', '#D0D0D0'], ['pixels26', '#7BE368', '#D0D0D0'], ['fletxes26', '#FDF993', '#D0D0D0']];
+  var ZDEF = [['blur', '#FE6B6B', '#D0D0D0'], ['dots', '#7BE368', '#D0D0D0'], ['rombes', '#FDF993', '#D0D0D0']];
   function pStatus(m, err) { var e = $('pStatus'); e.textContent = (err ? '⚠ ' : '') + m; e.style.color = err ? '#c62828' : ''; }
   function effById(id) { return EFFECTS.filter(function (e) { return e.id === id; })[0] || EFFECTS[0]; }
 
