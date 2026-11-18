@@ -2991,15 +2991,15 @@ function blurVector(f, W, H) {
     for (y = 0; y < gh; y++) sy[i * gh + y] = Math.sin(TAU * c.ky * (y / (gh - 1)) + pyy);
     sig2 += c.a * c.a / 4;
   }
-  var sg = Math.sqrt(sig2 * (P.sym ? 2 : 1)), thr = 0.5 + (0.5 - Math.max(0.05, Math.min(0.95, P.level + f.tide))) * 0.55, soft = P.soft * 0.6, depth = P.depth;
+  var sg = Math.sqrt(sig2 * (P.sym ? 2 : 1)), thr = 0.5 + (0.5 - Math.max(0.05, Math.min(0.95, P.level + f.tide))) * 0.55, soft = P.soft * 0.6;
   var V = new Float32Array(gw * gh);
   for (j = 0; j < gh; j++) for (i = 0; i < gw; i++) {
     var v = 0; for (k = 0; k < n; k++) v += cs[k].a * sy[k * gh + j] * (sxn[k * gw + i] + (P.sym ? sxm[k * gw + i] : 0));
     V[j * gw + i] = 0.5 + v / (4 * sg) - thr;
   }
-  var rim = blurHex(toHex(f.ink)), bg = blurHex(toHex(f.base)), dk = 1 - 0.55, core = [rim[0] * dk, rim[1] * dk, rim[2] * dk];
-  function col(d) { var a = blurSS(-soft, soft, d), kk = blurSS(0, depth, d), r = [0, 0, 0], m; for (m = 0; m < 3; m++) r[m] = bg[m] + ((rim[m] + (core[m] - rim[m]) * kk) - bg[m]) * a; return r; }
-  var dlo = -soft, dhi = Math.max(soft, depth), S = 600, cum = [0], prev = col(dlo), K = Math.max(4, P.lv);
+  var rim = blurHex(toHex(f.ink)), bg = blurHex(toHex(f.base));
+  function col(d) { var a = blurSS(-soft, soft, d), r = [0, 0, 0], m; for (m = 0; m < 3; m++) r[m] = bg[m] + (rim[m] - bg[m]) * a; return r; }
+  var dlo = -soft, dhi = soft, S = 600, cum = [0], prev = col(dlo), K = Math.max(4, P.lv);
   for (i = 1; i <= S; i++) { var cc = col(dlo + (dhi - dlo) * i / S); cum.push(cum[i - 1] + Math.abs(cc[0] - prev[0]) + Math.abs(cc[1] - prev[1]) + Math.abs(cc[2] - prev[2]) + 1e-6); prev = cc; }
   var tot = cum[S], bounds = [dlo], q = 0;
   for (k = 1; k < K; k++) { var target = tot * k / K; while (q < S && cum[q] < target) q++; bounds.push(dlo + (dhi - dlo) * q / S); }
@@ -3022,7 +3022,6 @@ EFFECTS.push({
     { id: 'scale', label: 'Mida de les taques', min: 40, max: 220, value: 80, div: 100, fmt: 'pct', hint: 'Més alt = taques més petites i més nombroses.' },
     { id: 'level', label: 'Quantitat de color', min: 10, max: 90, value: 44, div: 100, fmt: 'pct', hint: 'Amb poc color queden taques aïllades; amb molt, tot s\'omple i només queden obertures.' },
     { id: 'soft', label: 'Difuminat de la vora', min: 1, max: 30, value: 7, div: 100, fmt: 'pct', hint: 'Amplada de la transició entre la taca i el fons.' },
-    { id: 'depth', label: 'Profunditat del cor', min: 3, max: 50, value: 26, div: 100, fmt: 'pct', hint: 'Quant s\'endinsa la vora clara cap al cor fosc.' },
     { id: 'detail', label: 'Detall', min: 0, max: 100, value: 40, div: 100, fmt: 'pct', hint: 'Més detall afegeix punts, estrangulaments i ramificacions petites.' },
     { id: 'sym', label: 'Simetria esquerra-dreta', min: 0, max: 1, value: 0, div: 1, fmt: 'int', hint: '1 = la composició és un mirall. 0 = lliure.' },
     { id: 'speed', label: 'Moviment continu', min: 0, max: 300, value: 70, div: 100, fmt: 'pct', hint: 'Evolució de base de les taques, sempre en marxa.' },
@@ -3036,16 +3035,16 @@ EFFECTS.push({
     { id: 'tide', label: 'Marea (volum): més color amb més volum', kind: 'level', src: 'loud', amt: 25, max: 100, smooth: 0.3 }
   ],
   presets: [
-    ['Taques', { scale: 80, level: 44, soft: 7, depth: 26, detail: 40, sym: 0, speed: 70, step: 90, burst: 20, seed: 8 }],
-    ['Suau', { scale: 70, level: 55, soft: 14, depth: 30, detail: 15, sym: 0, speed: 60, step: 80, burst: 25, seed: 3 }],
-    ['Petites', { scale: 170, level: 42, soft: 4, depth: 16, detail: 70, sym: 0, speed: 90, step: 100, burst: 15, seed: 14 }],
-    ['Mirall', { scale: 80, level: 44, soft: 7, depth: 26, detail: 40, sym: 1, speed: 70, step: 90, burst: 20, seed: 11 }]
+    ['Taques', { scale: 80, level: 44, soft: 7, detail: 40, sym: 0, speed: 70, step: 90, burst: 20, seed: 8 }],
+    ['Suau', { scale: 70, level: 55, soft: 14, detail: 15, sym: 0, speed: 60, step: 80, burst: 25, seed: 3 }],
+    ['Petites', { scale: 170, level: 42, soft: 4, detail: 70, sym: 0, speed: 90, step: 100, burst: 15, seed: 14 }],
+    ['Mirall', { scale: 80, level: 44, soft: 7, detail: 40, sym: 1, speed: 70, step: 90, burst: 20, seed: 11 }]
   ],
-  rand: { scale: [60, 170], level: [35, 65], soft: [3, 14], depth: [14, 35], detail: [10, 80], sym: [0, 1], seed: [0, 99] },
+  rand: { scale: [60, 170], level: [35, 65], soft: [3, 14], detail: [10, 80], sym: [0, 1], seed: [0, 99] },
   preview: function (S, P) { var T = S.times('flow'); return T.length > 5 ? T[5] + 0.2 : 3.2; },
   frame: function (t, P, S) {
     var steps = kalSteps(S, 'flow', t, P.burst), tide = S.amt('tide') * (S.sig('tide', t) - 0.4) * 0.5;
-    return { t: t, steps: steps, tide: tide, P: { scale: P.scale, level: P.level, soft: P.soft, depth: P.depth, core: 0.55, detail: P.detail, sym: P.sym | 0, speed: P.speed, step: P.step, seed: P.seed, lv: P.lv | 0 }, ink: P.ink, base: P.base };
+    return { t: t, steps: steps, tide: tide, P: { scale: P.scale, level: P.level, soft: P.soft, detail: P.detail, sym: P.sym | 0, speed: P.speed, step: P.step, seed: P.seed, lv: P.lv | 0 }, ink: P.ink, base: P.base };
   },
   scene: function (f, W, H) {
     var live = (typeof window !== 'undefined' && window.__live === true);
@@ -3058,15 +3057,15 @@ EFFECTS.push({
       for (var y = 0; y < rh; y++) sy[i * rh + y] = Math.sin(TAU * c.ky * ((y + 0.5) / rh) + pyy);
       sig2 += c.a * c.a / 4;
     }
-    var sg = Math.sqrt(sig2 * (P.sym ? 2 : 1)), thr = 0.5 + (0.5 - Math.max(0.05, Math.min(0.95, P.level + f.tide))) * 0.55, soft = P.soft * 0.6, depth = P.depth;
-    var rim = blurHex(toHex(f.ink)), bg = blurHex(toHex(f.base)), dk = 1 - 0.55, core = [rim[0] * dk, rim[1] * dk, rim[2] * dk], data = new Uint8ClampedArray(rw * rh * 4);
+    var sg = Math.sqrt(sig2 * (P.sym ? 2 : 1)), thr = 0.5 + (0.5 - Math.max(0.05, Math.min(0.95, P.level + f.tide))) * 0.55, soft = P.soft * 0.6;
+    var rim = blurHex(toHex(f.ink)), bg = blurHex(toHex(f.base)), data = new Uint8ClampedArray(rw * rh * 4);
     for (var yy = 0; yy < rh; yy++) for (var xx = 0; xx < rw; xx++) {
       var v = 0;
       for (var k = 0; k < n; k++) v += cs[k].a * sy[k * rh + yy] * (sxn[k * rw + xx] + (P.sym ? sxm[k * rw + xx] : 0));
-      var d = 0.5 + v / (4 * sg) - thr, a = blurSS(-soft, soft, d), kk = blurSS(0, depth, d), o = (yy * rw + xx) * 4;
-      data[o] = bg[0] + ((rim[0] + (core[0] - rim[0]) * kk) - bg[0]) * a;
-      data[o + 1] = bg[1] + ((rim[1] + (core[1] - rim[1]) * kk) - bg[1]) * a;
-      data[o + 2] = bg[2] + ((rim[2] + (core[2] - rim[2]) * kk) - bg[2]) * a;
+      var d = 0.5 + v / (4 * sg) - thr, a = blurSS(-soft, soft, d), o = (yy * rw + xx) * 4;
+      data[o] = bg[0] + (rim[0] - bg[0]) * a;
+      data[o + 1] = bg[1] + (rim[1] - bg[1]) * a;
+      data[o + 2] = bg[2] + (rim[2] - bg[2]) * a;
       data[o + 3] = 255;
     }
     return { bg: toHex(f.base), items: [{ raster: { w: rw, h: rh, data: data } }], note: 'ràster suau' };
