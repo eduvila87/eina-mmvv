@@ -144,7 +144,7 @@ summary::-webkit-details-marker{display:none}
     </div>
     <div class="group"><h3>4 · Color i format</h3>
      <div class="sw" id="palettes"></div>
-     <div class="cols"><label><input id="ink" type="color" value="#7BE368">Color</label><label><input id="base" type="color" value="#D0D0D0">Fons</label></div>
+     <div class="cols"><label><input id="ink" type="color" value="#58D064">Color</label><label><input id="base" type="color" value="#D9D9D9">Fons</label></div>
     </div>
     <div class="group"><h3 class="h-sub">Format</h3>
      <select id="aspect"><option value="2:3">Cartell 2:3</option><option value="4:5" selected>Vertical 4:5</option><option value="1:1">Quadrat 1:1</option><option value="16:9">Horitzontal 16:9</option><option value="9:16">Vertical 9:16</option></select>
@@ -209,7 +209,7 @@ summary::-webkit-details-marker{display:none}
     <div class="row" id="zRowDiv" style="display:none"><div class="lab"><label for="zDiv">Subdivisió</label></div><select id="zDiv"><option value="x2">Meitats de pols (×2)</option><option value="1" selected>Cada pols</option><option value="2">Cada 2 pols</option><option value="4">Cada 4 pols (compàs)</option></select></div>
    </div>
    <div class="sub"><h4>Color</h4><div class="in"><div class="sw" id="zPal"></div>
-    <div class="cols"><label><input id="zInk" type="color" value="#7BE368">Color</label><label><input id="zBase" type="color" value="#D0D0D0">Fons</label></div></div></div>
+    <div class="cols"><label><input id="zInk" type="color" value="#58D064">Color</label><label><input id="zBase" type="color" value="#D9D9D9">Fons</label></div></div></div>
   </div>
   <div class="group"><h3>Capa superior (text i logos)</h3>
    <label class="file" style="background:#fff;color:var(--ink)">Importar PNG<input id="pOverFile" type="file" accept="image/png,image/*"></label>
@@ -2365,7 +2365,7 @@ var EFFECTS = [];
 
 /* ---------------------------------------------------------------- 1. Anelles i bandes */
 EFFECTS.push({
-  id: 'quantum', name: 'Anelles i bandes', colors: ['#7BE368', '#D0D0D0'],
+  id: 'quantum', name: 'Anelles i bandes', colors: ['#58D064', '#D9D9D9'],
   params: [
     { id: 'freqR', label: 'Anelles', min: 10, max: 200, value: 35, div: 10, fmt: 'd1' },
     { id: 'freqB', label: 'Bandes', min: 20, max: 250, value: 60, div: 10, fmt: 'd1' },
@@ -2506,7 +2506,7 @@ function spreadFields(W, H, P, gw, gh, dx, ox, oy) {
   SPREAD_CACHE = { key: key, val: out }; return out;
 }
 EFFECTS.push({
-  id: 'spread', name: 'Escampada orgànica', colors: ['#FE6B6B', '#D0D0D0'],
+  id: 'spread', name: 'Escampada orgànica', colors: ['#FE6B6B', '#D9D9D9'],
   params: [
     { id: 'scale', label: 'Escala de les formes', min: 10, max: 200, value: 70, div: 100, fmt: 'pct', hint: 'Mida dels golfs i les penínsules.' },
     { id: 'veins', label: 'Venes i ramificacions', min: 0, max: 100, value: 65, div: 100, fmt: 'pct', hint: 'Amb més venes la taca s\'estén en tentacles; amb menys és una massa més compacta.' },
@@ -2626,7 +2626,7 @@ function mosPath(lv, ox, oy, cell) {
   return d.join('');
 }
 EFFECTS.push({
-  id: 'mosaic', name: 'Mosaic simètric', colors: ['#AE84F8', '#D0D0D0'],
+  id: 'mosaic', name: 'Mosaic simètric', colors: ['#AE84F8', '#D9D9D9'],
   params: [
     { id: 'cols', label: 'Columnes', min: 2, max: 8, value: 2, div: 1, fmt: 'int', hint: 'Les cel·les són quadrades; les files s\'ajusten a l\'alçada.' },
     { id: 'depth', label: 'Nivells de subdivisió', min: 0, max: 3, value: 2, div: 1, fmt: 'int', hint: 'Cada cel·la es pot partir en 4 de més petites, i aquestes en 4 més.' },
@@ -2682,7 +2682,7 @@ function profStops(base, ink, kind, per, ph, quant) {
   return st;
 }
 EFFECTS.push({
-  id: 'vbars', name: 'Barres verticals', colors: ['#FE6B6B', '#D0D0D0'],
+  id: 'vbars', name: 'Barres verticals', colors: ['#FE6B6B', '#D9D9D9'],
   params: [
     { id: 'bars', label: 'Nombre de barres', min: 1, max: 24, value: 5, div: 1, fmt: 'int', hint: 'Les barres sempre van juntes, sense separació.' },
     { id: 'widthVar', label: 'Varietat d\'amplades', min: 0, max: 100, value: 70, div: 100, fmt: 'pct' },
@@ -2748,7 +2748,7 @@ function kalSteps(S, id, t, tau) {
   return v * Math.min(1.5, S.amt(id));
 }
 EFFECTS.push({
-  id: 'kaleido', name: 'Caleidoscopi de rombes', colors: ['#AE84F8', '#D0D0D0'],
+  id: 'kaleido', name: 'Caleidoscopi de rombes', colors: ['#AE84F8', '#D9D9D9'],
   params: [
     { id: 'rays', label: 'Eixos', min: 3, max: 16, value: 8, div: 1, fmt: 'int' },
     { id: 'shape', label: 'Forma', min: 1, max: 4, value: 1, div: 1, fmt: 'int', hint: '1 = rombes · 2 = triangles · 3 = trapezis · 4 = xevrons.' },
@@ -2843,7 +2843,7 @@ function dotsStates(P, W, H, mv, n, T) {
   return { st: st, K: K, g: g };
 }
 EFFECTS.push({
-  id: 'dots', name: 'Cercles en graella', colors: ['#7BE368', '#D0D0D0'],
+  id: 'dots', name: 'Cercles en graella', colors: ['#58D064', '#D9D9D9'],
   params: [
     { id: 'cols', label: 'Columnes', min: 3, max: 12, value: 6, div: 1, fmt: 'int', hint: 'Les files s\'ajusten a l\'alçada perquè les cel·les siguin quadrades.' },
     { id: 'fill', label: 'Ocupació de la graella', min: 5, max: 80, value: 40, div: 100, fmt: 'pct', hint: 'Part de les cel·les que tenen un cercle.' },
@@ -2890,7 +2890,7 @@ EFFECTS.push({
 
 /* ===== Mandala de cercles: cadenes de cercles de mida fixa que s'expandeixen des del centre cap a fora (rosa → estrella → anell → el·lipse) i tornen enrere ===== */
 EFFECTS.push({
-  id: 'mandala', name: 'Mandala de cercles', colors: ['#D0D0D0', '#AE84F8'],
+  id: 'mandala', name: 'Mandala de cercles', colors: ['#AE84F8', '#D9D9D9'],
   params: [
     { id: 'rays', label: 'Cercles de la cadena interior', min: 4, max: 12, value: 8, div: 1, fmt: 'int', hint: 'Cada cadena següent en té més. Amb 8, les cadenes són de 8, 24, 40 cercles.' },
     { id: 'rings', label: 'Cadenes', min: 1, max: 3, value: 2, div: 1, fmt: 'int' },
@@ -3017,7 +3017,7 @@ function blurVector(f, W, H) {
 }
 
 EFFECTS.push({
-  id: 'blur', name: 'Taques difuminades', colors: ['#7BE368', '#D0D0D0'],
+  id: 'blur', name: 'Taques difuminades', colors: ['#58D064', '#D9D9D9'],
   params: [
     { id: 'scale', label: 'Mida de les taques', min: 40, max: 220, value: 80, div: 100, fmt: 'pct', hint: 'Més alt = taques més petites i més nombroses.' },
     { id: 'level', label: 'Quantitat de color', min: 10, max: 90, value: 44, div: 100, fmt: 'pct', hint: 'Amb poc color queden taques aïllades; amb molt, tot s\'omple i només queden obertures.' },
@@ -3089,7 +3089,7 @@ function glBase(P, X, Y, cyc, drift) {
 
 /* ===== Triangles 26: graella de cel·les rectangulars tallades per una diagonal que gira cap a un estat ample i torna, en un cicle global per pols ===== */
 EFFECTS.push({
-  id: 'triangles26', name: 'Triangles', colors: ['#FE6B6B', '#D0D0D0'],
+  id: 'triangles26', name: 'Triangles', colors: ['#FE6B6B', '#D9D9D9'],
   params: [
     { id: 'cols', label: 'Columnes', min: 400, max: 4000, value: 1540, div: 100, fmt: 'd2', hint: 'Cel·les en horitzontal (amb decimals: l\'última queda tallada, com al referent).' },
     { id: 'aspect', label: 'Alt de la cel·la / ample', min: 50, max: 250, value: 120, div: 100, fmt: 'd2', hint: '1,20 és la proporció del referent (cel·les una mica més altes que amples).' },
@@ -3205,7 +3205,7 @@ function rombesVector(f, W, H) {
 }
 
 EFFECTS.push({
-  id: 'rombes', name: 'Rombes', colors: ['#AE84F8', '#D0D0D0'],
+  id: 'rombes', name: 'Rombes', colors: ['#AE84F8', '#D9D9D9'],
   params: [
     { id: 'cx', label: 'Centre horitzontal', min: 0, max: 100, value: 50, div: 100, fmt: 'pct' },
     { id: 'cy', label: 'Centre vertical', min: 0, max: 100, value: 49, div: 100, fmt: 'pct' },
@@ -3288,7 +3288,7 @@ EFFECTS.push({
 
 /* ===== Reixa: graella de cel·les amb una bombolla central que obre forats i es torna a omplir, sobre una lent esfèrica ===== */
 EFFECTS.push({
-  id: 'reixa', name: 'Reixa', colors: ['#7BE368', '#D0D0D0'],
+  id: 'reixa', name: 'Reixa', colors: ['#58D064', '#D9D9D9'],
   params: [
     { id: 'n', label: 'Cel·les per costat (senar)', min: 3, max: 11, value: 5, div: 1, fmt: 'int' },
     { id: 'cut', label: 'Cantonades tallades (cel·les)', min: 0, max: 3, value: 1, div: 1, fmt: 'int', hint: '1 = la graella queda en forma de creu, sense les cel·les dels quatre cantons.' },
@@ -3765,7 +3765,7 @@ EFFECTS.push({
 
   /* ================= interfície: pestanyes, colors, tecles ================= */
   var app = $('app');
-  var PALETTES = [['#7BE368', '#D0D0D0', 'Verd i gris'], ['#FE6B6B', '#D0D0D0', 'Vermell i gris'], ['#AE84F8', '#D0D0D0', 'Lila i gris'], ['#FDF993', '#D0D0D0', 'Groc i gris'], ['#D0D0D0', '#7BE368', 'Gris sobre verd'], ['#D0D0D0', '#FE6B6B', 'Gris sobre vermell'], ['#D0D0D0', '#AE84F8', 'Gris sobre lila'], ['#D0D0D0', '#FDF993', 'Gris sobre groc']];
+  var PALETTES = [['#FE6B6B', '#D9D9D9', 'Vermell i gris'], ['#AE84F8', '#D9D9D9', 'Lila i gris'], ['#58D064', '#D9D9D9', 'Verd i gris'], ['#64E1B1', '#D9D9D9', 'Menta i gris'], ['#B2E2F6', '#D9D9D9', 'Blau cel i gris'], ['#FDF993', '#D9D9D9', 'Groc i gris']];
   PALETTES.forEach(function (p) {
     var b = document.createElement('button'); b.className = 'swatch'; b.title = p[2]; b.setAttribute('aria-label', p[2]);
     b.style.background = 'linear-gradient(135deg,' + p[0] + ' 50%,' + p[1] + ' 50%)'; b.onclick = function () { setVals({ ink: p[0], base: p[1] }); }; $('palettes').appendChild(b);
@@ -3804,7 +3804,7 @@ EFFECTS.push({
   var PO = { active: false, fmt: 'ig', W: 1080, H: 1382, layout: 'T1B2', d1: 0.42, d2: 0.5, sel: 0, zones: [], over: null, overUrl: '', playing: false, offset: 0, startAt: 0, raf: 0, exporting: false, live: true, cancel: false, master: null, shown: false };
   var FORMATS = { ig: [1080, 1382], ig45: [1080, 1350], story: [1080, 1920], sq: [1080, 1080], p23: [1080, 1620] };
   var LAYOUTS = [['T1B2', 'Una franja a dalt, dues a sota', 0.42, 0.5], ['T2B1', 'Dues franges a dalt, una a sota', 0.7, 0.75], ['L1R2', 'Una a l\'esquerra, dues a la dreta', 0.5, 0.5], ['L2R1', 'Dues a l\'esquerra, una a la dreta', 0.5, 0.5], ['H3', 'Tres bandes horitzontals', 0.33, 0.66], ['V3', 'Tres columnes', 0.33, 0.66]];
-  var ZDEF = [['blur', '#FE6B6B', '#D0D0D0'], ['dots', '#7BE368', '#D0D0D0'], ['rombes', '#FDF993', '#D0D0D0']];
+  var ZDEF = [['blur', '#FE6B6B', '#D9D9D9'], ['dots', '#58D064', '#D9D9D9'], ['rombes', '#FDF993', '#D9D9D9']];
   function pStatus(m, err) { var e = $('pStatus'); e.textContent = (err ? '⚠ ' : '') + m; e.style.color = err ? '#c62828' : ''; }
   function effById(id) { return EFFECTS.filter(function (e) { return e.id === id; })[0] || EFFECTS[0]; }
 
