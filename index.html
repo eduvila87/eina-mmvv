@@ -3558,6 +3558,8 @@ EFFECTS.push({
 
   /* ================= reproducció (rellotge de l'AudioContext) ================= */
   function ensureCtx() {
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { } /* iOS: so tot i amb el botó de silenci */
+    if (!window.__iosKeep) { try { var ka = document.createElement('audio'); ka.setAttribute('playsinline', ''); ka.loop = true; ka.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAABErAAABAAgAZGF0YQAAAAA='; window.__iosKeep = ka; var kp = ka.play(); if (kp && kp.catch) kp.catch(function () { }); } catch (e) { } }
     if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); recDest = audioCtx.createMediaStreamDestination(); }
     var p = audioCtx.resume ? audioCtx.resume() : null; // mai bloquejar: si el navegador no la deixa arrencar, continuem igualment
     return p ? Promise.race([p.catch(function () {}), new Promise(function (r) { setTimeout(r, 1200); })]) : Promise.resolve();
