@@ -2685,8 +2685,6 @@ EFFECTS.push({
   id: 'vbars', name: 'Barres verticals', colors: ['#FE6B6B', '#D9D9D9'],
   params: [
     { id: 'bars', label: 'Nombre de barres', min: 1, max: 24, value: 5, div: 1, fmt: 'int', hint: 'Les barres sempre van juntes, sense separació.' },
-    { id: 'widthVar', label: 'Varietat d\'amplades', min: 0, max: 100, value: 70, div: 100, fmt: 'pct' },
-    { id: 'sky', label: 'Alçades diferents', min: 0, max: 100, value: 0, div: 100, fmt: 'pct', hint: 'Les barres comencen i acaben a altures diferents, com una silueta de ciutat.' },
     { id: 'shape', label: 'Perfil del degradat', min: 1, max: 3, value: 1, div: 1, fmt: 'int', hint: '1 = suau · 2 = cascada (cau i es talla de cop) · 3 = triangular (va i torna).' },
     { id: 'periods', label: 'Franges del degradat', min: 5, max: 40, value: 15, div: 10, fmt: 'd1' },
     { id: 'dvar', label: 'Varietat de densitat', min: 0, max: 100, value: 60, div: 100, fmt: 'pct', hint: 'Cada barra té més o menys franges.' },
@@ -2695,31 +2693,33 @@ EFFECTS.push({
     { id: 'mix', label: 'Barres que pugen', min: 0, max: 100, value: 0, div: 100, fmt: 'pct' },
     { id: 'step', label: 'Avanç per pols', min: 5, max: 100, value: 25, div: 100, fmt: 'pct', hint: 'Quina part d\'un cicle de degradat avança a cada pols.' },
     { id: 'soft', label: 'Suavitat de l\'atac', min: 0, max: 100, value: 60, div: 100, fmt: 'pct', hint: 'Amb més suavitat el degradat llisca; amb menys fa un salt sec.' },
-    { id: 'speed', label: 'Moviment continu', min: 0, max: 200, value: 20, div: 100, fmt: 'pct', hint: 'Baixada constant, independent dels pulsos.' },
+    { id: 'speed', label: 'Moviment de fons (sense so)', min: 0, max: 200, value: 50, div: 100, fmt: 'pct', hint: 'Baixada lenta i constant que no s\'atura mai, ni quan no hi ha so.' },
+    { id: 'drive', label: 'Empenta del volum', min: 0, max: 300, value: 150, div: 100, fmt: 'pct', hint: 'Com més volum té la pista, més ràpid baixa el degradat; quan el so s\'apaga, frena suaument fins al moviment de fons.' },
     { id: 'seed', label: 'Llavor', min: 0, max: 99, value: 6, div: 1, fmt: 'int' }
   ],
   bindings: [
-    { id: 'flow', label: 'Cada pols fa baixar el degradat', kind: 'pulse', src: 'onset', amt: 100, max: 200 }
+    { id: 'flow', label: 'Cada pols fa baixar el degradat', kind: 'pulse', src: 'onset', amt: 100, max: 200 },
+    { id: 'vol', label: 'El volum accelera el degradat', kind: 'level', src: 'loud', amt: 100, max: 200, smooth: 0.4 }
   ],
   presets: [
-    ['Suau', { bars: 5, widthVar: 70, sky: 0, shape: 1, periods: 15, dvar: 60, quant: 0, poly: 70, mix: 0, step: 25, soft: 60, speed: 20, seed: 6 }],
-    ['Cascada', { bars: 5, widthVar: 60, sky: 0, shape: 2, periods: 12, dvar: 55, quant: 0, poly: 70, mix: 0, step: 30, soft: 55, speed: 20, seed: 11 }],
-    ['Skyline', { bars: 5, widthVar: 65, sky: 85, shape: 1, periods: 15, dvar: 60, quant: 0, poly: 70, mix: 0, step: 25, soft: 60, speed: 20, seed: 4 }],
-    ['Set barres', { bars: 7, widthVar: 85, sky: 0, shape: 3, periods: 15, dvar: 60, quant: 0, poly: 80, mix: 0, step: 25, soft: 60, speed: 20, seed: 2 }]
+    ['Suau', { bars: 5, shape: 1, periods: 15, dvar: 60, quant: 0, poly: 70, mix: 0, step: 25, soft: 60, speed: 50, drive: 150, seed: 6 }],
+    ['Cascada', { bars: 5, shape: 2, periods: 12, dvar: 55, quant: 0, poly: 70, mix: 0, step: 30, soft: 55, speed: 50, drive: 150, seed: 11 }],
+    ['Set barres', { bars: 7, shape: 3, periods: 15, dvar: 60, quant: 0, poly: 80, mix: 0, step: 25, soft: 60, speed: 50, drive: 150, seed: 2 }]
   ],
-  rand: { bars: [3, 12], widthVar: [40, 90], sky: [0, 90], shape: [1, 3], periods: [8, 28], dvar: [30, 80], poly: [30, 100], mix: [0, 40], step: [15, 50], speed: [0, 50], seed: [0, 99] },
+  rand: { bars: [3, 12], shape: [1, 3], periods: [8, 28], dvar: [30, 80], poly: [30, 100], mix: [0, 40], step: [15, 50], speed: [0, 50], seed: [0, 99] },
   preview: function (S, P) { var T = S.times('flow'); return T.length > 5 ? T[5] + 0.5 : 3.2; },
   frame: function (t, P, S) {
     var nb = P.bars | 0, fa = Math.min(1.5, S.amt('flow')), ev = S.events('flow', t, 64), att = 0.08 + P.soft * 1.6, surge = Math.max(0, ev.n - ev.list.length) * 0.8;
-    ev.list.forEach(function (e) { var x = (t - e.t) / att; x = x < 0 ? 0 : x > 1 ? 1 : x; surge += e.s * x * x * (3 - 2 * x); });
-    var SUB = [1, 0.5, 2, 0.25, 1, 0.5, 2], sd = P.seed * 31, ws = [], sw = 0, bars = [];
-    for (var i = 0; i < nb; i++) { ws.push(Math.max(0.12, 1 + P.widthVar * (hash01(sd + i, 1) * 2 - 1) * 0.85)); sw += ws[i]; }
-    var avail = 0.92, x = (1 - avail) / 2;
+    ev.list.forEach(function (e) { var x = (t - e.t) / att, g = S.sig('vol', e.t) / 0.2; x = x < 0 ? 0 : x > 1 ? 1 : x; g = g < 0 ? 0 : g > 1 ? 1 : g; surge += e.s * g * g * (3 - 2 * g) * x * x * (3 - 2 * x); }); /* els atacs minúsculs de la cua del so no fan salts */
+    var SUB = [1, 0.5, 2, 0.25, 1, 0.5, 2], sd = P.seed * 31, ws = [], sw = 0, bars = [], vint = 0, va = Math.min(2, S.amt('vol')) * (P.drive == null ? 1.5 : P.drive);
+    if (va > 0.001 && t > 0) { var vdt = Math.max(0.05, S.dur() / 900), vn = Math.floor(t / vdt), vi; for (vi = 0; vi < vn; vi++) vint += S.sig('vol', (vi + 0.5) * vdt) * vdt; var vr = t - vn * vdt; if (vr > 0) vint += S.sig('vol', vn * vdt + vr / 2) * vr; vint *= va * 0.4; } /* graella fixa: la integral és contínua i mai retrocedeix */
+    for (var i = 0; i < nb; i++) { ws.push(1); sw += ws[i]; }
+    var avail = 1, x = 0;
     for (i = 0; i < nb; i++) {
       var w = ws[i] / sw * avail, sub = 1 + P.poly * (SUB[(i + P.seed) % 7] - 1), dir = hash01(sd + i, 3) < P.mix ? -1 : 1;
-      var y0 = 0.04 + P.sky * 0.4 * hash01(sd + i, 4) * (hash01(sd + i, 5) < 0.6 ? 1 : 0.2), y1 = 0.96 - P.sky * 0.4 * hash01(sd + i, 6) * (hash01(sd + i, 7) < 0.6 ? 1 : 0.2);
-      var per = P.periods * (1 + P.dvar * (hash01(sd + i, 8) * 2 - 1) * 0.7), ph = dir * sub * (t * P.speed * 0.05 + surge * fa * P.step) + hash01(sd + i, 9);
-      bars.push({ x0: x, x1: x + w, y0: y0, y1: y1, per: per * (y1 - y0) / 0.92, ph: ph });
+      var y0 = 0, y1 = 1;
+      var per = P.periods * (1 + P.dvar * (hash01(sd + i, 8) * 2 - 1) * 0.7), ph = dir * sub * (t * P.speed * 0.05 + surge * fa * P.step + vint) + hash01(sd + i, 9);
+      bars.push({ x0: x, x1: x + w, y0: y0, y1: y1, per: per, ph: ph });
       x += w;
     }
     return { bars: bars, shape: P.shape | 0, quant: P.quant | 0, ink: P.ink, base: P.base };
