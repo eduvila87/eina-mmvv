@@ -2505,55 +2505,6 @@ function spreadFields(W, H, P, gw, gh, dx, ox, oy) {
   }
   SPREAD_CACHE = { key: key, val: out }; return out;
 }
-EFFECTS.push({
-  id: 'spread', name: 'Escampada orgànica', colors: ['#FE6B6B', '#D9D9D9'],
-  params: [
-    { id: 'scale', label: 'Escala de les formes', min: 10, max: 200, value: 70, div: 100, fmt: 'pct', hint: 'Mida dels golfs i les penínsules.' },
-    { id: 'veins', label: 'Venes i ramificacions', min: 0, max: 100, value: 65, div: 100, fmt: 'pct', hint: 'Amb més venes la taca s\'estén en tentacles; amb menys és una massa més compacta.' },
-    { id: 'detail', label: 'Detall de la vora', min: 0, max: 100, value: 55, div: 100, fmt: 'pct', hint: 'Vora fractal amb puntes, golfs petits i porus.' },
-    { id: 'focus', label: 'Punts d\'origen', min: 1, max: 8, value: 4, div: 1, fmt: 'int' },
-    { id: 'cover', label: 'Cobertura', min: 20, max: 95, value: 60, div: 100, fmt: 'pct', hint: 'Quanta pantalla ocupa la taca. No creix amb el ritme: el ritme només la fa evolucionar.' },
-    { id: 'breath', label: 'Respiració lenta', min: 0, max: 100, value: 25, div: 100, fmt: 'pct', hint: 'La taca s\'encongeix i es torna a omplir molt a poc a poc.' },
-    { id: 'speed', label: 'Velocitat de base', min: 0, max: 200, value: 40, div: 100, fmt: 'pct', hint: 'Evolució contínua de la forma, encara que no hi hagi ritme.' },
-    { id: 'soft', label: 'Suavitat de l\'atac', min: 0, max: 100, value: 85, div: 100, fmt: 'pct', hint: 'Amb més suavitat cada pols és una onada llarga i fluida; amb menys és una empenta curta.' },
-    { id: 'seed', label: 'Llavor', min: 0, max: 99, value: 3, div: 1, fmt: 'int' }
-  ],
-  bindings: [
-    { id: 'flow', label: 'Cada pols fa evolucionar la forma', kind: 'pulse', src: 'onset', amt: 80, max: 200 },
-    { id: 'tide', label: 'Marea (volum)', kind: 'level', src: 'loud', amt: 20, max: 100, smooth: 0.3 },
-    { id: 'edge', label: 'La vora s\'esfilagarsa', kind: 'level', src: 'high', amt: 50, max: 100, smooth: 0.1 }
-  ],
-  presets: [
-    ['Venes', { scale: 70, veins: 65, detail: 55, focus: 4, cover: 60, breath: 25, speed: 40, soft: 85, seed: 3 }],
-    ['Compacta', { scale: 120, veins: 20, detail: 35, focus: 2, cover: 70, breath: 20, speed: 30, soft: 90, seed: 8 }],
-    ['Fractal fi', { scale: 45, veins: 85, detail: 90, focus: 6, cover: 50, breath: 30, speed: 60, soft: 75, seed: 5 }]
-  ],
-  rand: { scale: [35, 140], veins: [30, 90], detail: [35, 90], focus: [1, 7], cover: [40, 80], breath: [0, 50], speed: [20, 90], seed: [0, 99] },
-  preview: function (S, P) { var T = S.times('flow'); return T.length > 8 ? T[8] + 0.6 : 3.2; },
-  frame: function (t, P, S) {
-    var fa = S.amt('flow'), att = 0.25 + P.soft * 2.2, ev = S.events('flow', t, 64), surge = Math.max(0, ev.n - ev.list.length) * 0.8;
-    ev.list.forEach(function (e) { var x = (t - e.t) / att; x = x < 0 ? 0 : x > 1 ? 1 : x; surge += e.s * x * x * (3 - 2 * x); });
-    var psi = t * P.speed / 30 + fa * surge / 6; psi = psi < 0 ? 0 : psi;
-    var idx = Math.floor(psi), fr = psi - idx; fr = fr * fr * (3 - 2 * fr);
-    var cov = P.cover * (1 - P.breath * 0.5 * (0.5 - 0.5 * Math.cos(6.2831853 * t * P.speed / 150)));
-    cov += S.amt('tide') * (S.sig('tide', t) - 0.4) * 0.15; cov = Math.max(0.03, Math.min(0.95, cov));
-    var edge = Math.max(0, 1 + S.amt('edge') * 1.6 * (S.sig('edge', t) - 0.35));
-    return { cov: cov, ia: idx % 3, ib: (idx + 1) % 3, mix: fr, fine: P.detail * 0.16 * edge, P: { scale: P.scale, veins: P.veins, focus: P.focus, seed: P.seed }, ink: P.ink, base: P.base };
-  },
-  scene: function (f, W, H) {
-    var nx = Math.max(220, Math.min(560, Math.round(W / 3))), dx = W / nx, gw = nx + 5, gh = Math.ceil(H / dx) + 5, ox = -2 * dx, oy = -2 * dx;
-    var fl = spreadFields(W, H, f.P, gw, gh, dx, ox, oy), A = fl[f.ia], B = fl[f.ib], w = f.mix, ci = f.cov * 100, k0 = Math.min(99, Math.floor(ci)), fr = ci - k0;
-    var qa = A.q[k0] + (A.q[k0 + 1] - A.q[k0]) * fr, qb = B.q[k0] + (B.q[k0 + 1] - B.q[k0]) * fr, thr = qa + (qb - qa) * w, F = new Float32Array(gw * gh), fa = f.fine;
-    for (var k = 0; k < F.length; k++) F[k] = thr - ((A.C[k] + (B.C[k] - A.C[k]) * w) + fa * (A.Fn[k] + (B.Fn[k] - A.Fn[k]) * w));
-    var d = [], n = 0, minA = dx * dx * 2.2;
-    contourGrid(F, gw, gh, ox, oy, dx, dx).forEach(function (ring) {
-      var pts = dpSimplify(ring.concat([ring[0]]), dx * 0.05); pts.pop(); if (pts.length < 4) return;
-      var a = 0; for (var i = 0; i < pts.length; i++) { var p = pts[i], q = pts[(i + 1) % pts.length]; a += p[0] * q[1] - q[0] * p[1]; } if (Math.abs(a) / 2 < minA) return;
-      n++; d.push(smoothRingPath(pts));
-    });
-    return { bg: toHex(f.base), items: [{ d: d.join(''), fill: toHex(f.ink), rule: 'evenodd' }], note: n + ' contorns' };
-  }
-});
 
 /* ===== Mosaic simètric: graella de mòduls gràfics (octàgons, forats de pany, quarts de disc, osques...) que es subdivideixen i es reflecteixen; tot d'un sol color ===== */
 var MOS_MOTIFS = (function () {
@@ -2625,45 +2576,6 @@ function mosPath(lv, ox, oy, cell) {
   });
   return d.join('');
 }
-EFFECTS.push({
-  id: 'mosaic', name: 'Mosaic simètric', colors: ['#AE84F8', '#D9D9D9'],
-  params: [
-    { id: 'cols', label: 'Columnes', min: 2, max: 8, value: 2, div: 1, fmt: 'int', hint: 'Les cel·les són quadrades; les files s\'ajusten a l\'alçada.' },
-    { id: 'depth', label: 'Nivells de subdivisió', min: 0, max: 3, value: 2, div: 1, fmt: 'int', hint: 'Cada cel·la es pot partir en 4 de més petites, i aquestes en 4 més.' },
-    { id: 'split', label: 'Quantitat de subdivisions', min: 0, max: 100, value: 45, div: 100, fmt: 'pct' },
-    { id: 'sym', label: 'Simetria', min: 0, max: 100, value: 60, div: 100, fmt: 'pct', hint: 'Amb més simetria, les cel·les partides són un mirall en quatre.' },
-    { id: 'kinds', label: 'Varietat de formes', min: 3, max: 16, value: 12, div: 1, fmt: 'int' },
-    { id: 'change', label: 'Cel·les que canvien per pols', min: 5, max: 100, value: 45, div: 100, fmt: 'pct' },
-    { id: 'seed', label: 'Llavor', min: 0, max: 99, value: 4, div: 1, fmt: 'int' }
-  ],
-  bindings: [
-    { id: 'flip', label: 'Cada pols transforma cel·les', kind: 'pulse', src: 'onset', amt: 100, max: 200 },
-    { id: 'flip2', label: 'Més cel·les canvien amb un altre so', kind: 'pulse', src: 'onset_high', amt: 60, max: 200 }
-  ],
-  presets: [
-    ['Mosaic', { cols: 2, depth: 2, split: 45, sym: 60, kinds: 12, change: 45, seed: 4 }],
-    ['Gran', { cols: 2, depth: 3, split: 60, sym: 70, kinds: 12, change: 40, seed: 11 }],
-    ['Fi', { cols: 4, depth: 2, split: 50, sym: 50, kinds: 14, change: 35, seed: 7 }],
-    ['Net', { cols: 2, depth: 1, split: 35, sym: 100, kinds: 8, change: 50, seed: 2 }]
-  ],
-  rand: { cols: [2, 6], depth: [1, 3], split: [30, 75], sym: [30, 100], kinds: [6, 16], change: [25, 70], seed: [0, 99] },
-  preview: function (S, P) { var T = S.times('flip'); return T.length > 6 ? T[6] + 0.1 : 3.2; },
-  frame: function (t, P, S) {
-    var e1 = S.events('flip', t, 1), e2 = S.events('flip2', t, 1);
-    return { n: e1.n, n2: e2.n, fa: Math.min(1, S.amt('flip')), a2: Math.min(1, S.amt('flip2')), P: { cols: P.cols | 0, depth: P.depth | 0, split: P.split, sym: P.sym, kinds: P.kinds | 0, change: P.change, seed: P.seed }, ink: P.ink, base: P.base };
-  },
-  scene: function (f, W, H) {
-    var P = f.P, cell = W / P.cols, rows = Math.ceil(H / cell), oy = (H - rows * cell) / 2, d = [], n = 0;
-    for (var c = 0; c < P.cols; c++) for (var r = 0; r < rows; r++) {
-      var id = c * 64 + r + P.seed * 977, cnt = 0, i;
-      for (i = 0; i < f.n; i++) if (hash01(id, i + 100) < P.change * f.fa) cnt++;
-      for (i = 0; i < f.n2; i++) if (hash01(id, i + 7100) < P.change * 0.6 * f.a2) cnt++;
-      var lv = mosLeaves(P, id, cnt); n += lv.length;
-      d.push(mosPath(lv, c * cell, oy + r * cell, cell));
-    }
-    return { bg: toHex(f.base), items: [{ d: d.join(''), fill: toHex(f.ink) }], note: n + ' figures' };
-  }
-});
 /* ===== Barres degradades: mòduls rectangulars simètrics amb degradat lineal intern; es converteixen en ventalls inclinats ===== */
 function hexLerp(a, b, u) {
   var ca = [parseInt(a.slice(1, 3), 16), parseInt(a.slice(3, 5), 16), parseInt(a.slice(5, 7), 16)], cb = [parseInt(b.slice(1, 3), 16), parseInt(b.slice(3, 5), 16), parseInt(b.slice(5, 7), 16)], o = '#';
@@ -3088,86 +3000,6 @@ function glBase(P, X, Y, cyc, drift) {
 
 
 /* ===== Triangles 26: graella de cel·les rectangulars tallades per una diagonal que gira cap a un estat ample i torna, en un cicle global per pols ===== */
-EFFECTS.push({
-  id: 'triangles26', name: 'Triangles', colors: ['#FE6B6B', '#D9D9D9'],
-  params: [
-    { id: 'cols', label: 'Columnes', min: 400, max: 4000, value: 1540, div: 100, fmt: 'd2', hint: 'Cel·les en horitzontal (amb decimals: l\'última queda tallada, com al referent).' },
-    { id: 'aspect', label: 'Alt de la cel·la / ample', min: 50, max: 250, value: 120, div: 100, fmt: 'd2', hint: '1,20 és la proporció del referent (cel·les una mica més altes que amples).' },
-    { id: 'offx', label: 'Desplaçament horitzontal', min: 0, max: 100, value: 44, div: 100, fmt: 'pct' },
-    { id: 'offy', label: 'Desplaçament vertical', min: 0, max: 100, value: 5, div: 100, fmt: 'pct' },
-    { id: 'frest', label: 'Amplada de la punxa en repòs', min: 0, max: 50, value: 4, div: 100, fmt: 'pct', hint: 'Estat de repòs: punxes primes, amb la vora vertical a la dreta.' },
-    { id: 'frestx', label: 'Creixement del repòs d\'esquerra a dreta', min: 0, max: 60, value: 18, div: 100, fmt: 'pct' },
-    { id: 'fmax', label: 'Quantitat de rosa a l\'estat ample', min: 10, max: 90, value: 40, div: 100, fmt: 'pct' },
-    { id: 'fvar', label: 'Contrast entre zones', min: 0, max: 200, value: 100, div: 100, fmt: 'pct', hint: 'Zones amb molt rosa (cantonada de dalt a l\'esquerra i de baix a la dreta) i zones amb poc.' },
-    { id: 'zup', label: 'Límit de la zona de dalt (gir de mitja volta)', min: 0, max: 100, value: 38, div: 100, fmt: 'pct', hint: 'Per sobre d\'aquest punt, les cel·les giren 180°: apareixen triangles rosa grans amb el vèrtex a baix a l\'esquerra.' },
-    { id: 'zdn', label: 'Límit de la zona del mig (cel·les alternades)', min: 0, max: 100, value: 75, div: 100, fmt: 'pct', hint: 'Entre els dos límits, una cel·la sí i una no s\'emmiralla: es formen parelles de triangles. Per sota, tot gira poc.' },
-    { id: 'alt', label: 'Emmirallament alternat (0 = no, 1 = sí)', min: 0, max: 1, value: 1, div: 1, fmt: 'int' },
-    { id: 'noise', label: 'Irregularitat', min: 0, max: 200, value: 25, div: 100, fmt: 'pct' },
-    { id: 'seed', label: 'Llavor', min: 1, max: 99, value: 3, div: 1, fmt: 'int' },
-    { id: 'up', label: 'Durada de l\'obertura (s)', min: 20, max: 400, value: 110, div: 100, fmt: 'd2' },
-    { id: 'hold', label: 'Temps a l\'estat ample (s)', min: 0, max: 400, value: 140, div: 100, fmt: 'd2' },
-    { id: 'down', label: 'Durada del tancament (s)', min: 20, max: 400, value: 140, div: 100, fmt: 'd2' },
-    { id: 'rest', label: 'Repòs mínim entre cicles (s)', min: 0, max: 300, value: 90, div: 100, fmt: 'd2', hint: 'Els pulsos que arriben abans d\'acabar el cicle i aquest repòs es descarten.' },
-    { id: 'every', label: 'Un cicle cada N pulsos', min: 1, max: 8, value: 1, div: 1, fmt: 'int' }
-  ],
-  bindings: [
-    { id: 'cyc', label: 'Cada pols obre i tanca les cel·les', kind: 'pulse', src: 'onset_bass', amt: 100, max: 200 }
-  ],
-  presets: [
-    ['Triangles', { cols: 1540, aspect: 120, offx: 44, offy: 5, frest: 4, frestx: 18, fmax: 40, fvar: 100, zup: 38, zdn: 75, alt: 1, noise: 25, seed: 3, up: 110, hold: 140, down: 140, rest: 90, every: 1 }],
-    ['Fines', { cols: 2800, aspect: 120, offx: 44, offy: 5, frest: 4, frestx: 15, fmax: 45, fvar: 100, zup: 38, zdn: 75, alt: 1, noise: 25, seed: 7, up: 80, hold: 100, down: 100, rest: 60, every: 1 }],
-    ['Gran', { cols: 800, aspect: 120, offx: 44, offy: 5, frest: 8, frestx: 25, fmax: 50, fvar: 110, rotb: 40, rott: 217, alt: 155, noise: 25, seed: 5, up: 110, hold: 140, down: 140, rest: 90, every: 1 }],
-    ['Només rotació', { cols: 1540, aspect: 120, offx: 44, offy: 5, frest: 6, frestx: 0, fmax: 50, fvar: 0, zup: 0, zdn: 0, alt: 0, noise: 0, seed: 1, up: 110, hold: 140, down: 140, rest: 90, every: 1 }]
-  ],
-  rand: { cols: [800, 3000], aspect: [90, 160], frest: [2, 15], fmax: [25, 70], fvar: [40, 160], zup: [20, 55], zdn: [60, 90], alt: [0, 1], noise: [40, 160], seed: [1, 99], up: [60, 200], hold: [60, 250], down: [60, 250] },
-  preview: function (S, P) { var T = S.times('cyc'); return T.length > 2 ? T[2] + P.up + 0.3 : P.up + 0.6; },
-  frame: function (t0, P, S) {
-    var up = P.up, hold = P.hold, dn = P.down, g = 0, amt = S.amt('cyc'), Tm = S.times('cyc'), ev = (P.every | 0) || 1, i, starts = [];
-    if (amt > 0.001 && Tm.length > 0) {
-      var last = -1e9, cl = up + hold + dn + P.rest;
-      for (i = 0; i < Tm.length; i++) { if (i % ev !== 0) continue; if (Tm[i] - last >= cl) { starts.push(Tm[i]); last = Tm[i]; } if (Tm[i] > t0 + 1) break; }
-    } else {
-      var t = t0 + S.loops() * S.dur(), per = up + hold + dn + P.rest, k = Math.floor((t - 1.0) / per);
-      starts.push(t0 - (t - (k * per + 1.0)));
-    }
-    var ss = function (x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
-    for (i = 0; i < starts.length; i++) {
-      var a = t0 - starts[i], v;
-      if (a < 0) continue;
-      if (a < up) v = ss(a / up); else if (a < up + hold) v = 1; else v = 1 - ss((a - up - hold) / dn);
-      if (v > g) g = v;
-    }
-    return { g: Math.round(g * 5000) / 5000, P: { cols: P.cols, aspect: P.aspect, offx: P.offx, offy: P.offy, frest: P.frest, frestx: P.frestx, fmax: P.fmax, fvar: P.fvar, zup: P.zup, zdn: P.zdn, alt: P.alt | 0, noise: P.noise, seed: P.seed | 0 }, ink: P.ink, base: P.base };
-  },
-  scene: function (f, W, H) {
-    var P = f.P, g = f.g, cw = W / P.cols, ch = cw * P.aspect, nc = Math.ceil(P.cols) + 2, nr = Math.ceil(H / ch) + 2, d = [], cnt = 0, r, c;
-    var sm = function (x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
-    function pos(p) { var m = ((p % 4) + 4) % 4, k = Math.floor(m), s = m - k; return k === 0 ? [1, s] : k === 1 ? [1 - s, 1] : k === 2 ? [0, 1 - s] : [s, 0]; }
-    function poly(p1, p2) { var v = [pos(p1)], j; if (p2 - p1 >= 3.999) return [[0, 0], [1, 0], [1, 1], [0, 1]]; for (j = Math.floor(p1) + 1; j < p2; j++) v.push(pos(j)); v.push(pos(p2)); return v; }
-    for (r = -1; r < nr; r++) {
-      var yn = Math.max(0, Math.min(1, ((r + P.offy - 1) * ch + ch / 2) / H));
-      for (c = -1; c < nc; c++) {
-        var x0 = (c + P.offx - 1) * cw, y0 = (r + P.offy - 1) * ch;
-        if (x0 >= W || y0 >= H || x0 + cw <= 0 || y0 + ch <= 0) continue;
-        var xn = Math.max(0, Math.min(1, (x0 + cw / 2) / W)), id = (r + 3) * 1009 + (c + 3), h1 = hash01(id, P.seed) - 0.5, h2 = hash01(id, P.seed + 50) - 0.5, nz = P.noise;
-        var fr = Math.max(0, P.frest + P.frestx * Math.pow(xn, 1.6) + h1 * 0.06 * nz);
-        var cornA = (1 - xn) * (1 - yn) * 0.35 + xn * (1 - yn) * -0.25 + (1 - xn) * yn * -0.2 + xn * yn * 0.3;
-        var dip = Math.exp(-Math.pow((yn - 0.55) / 0.12, 2)) * -0.15;
-        var fm = Math.max(0.03, Math.min(0.97, P.fmax + P.fvar * (cornA + dip) + h2 * 0.5 * nz)), yj = yn + h2 * 0.12 * nz;
-        var p1T, p2T;
-        if (yj < P.zup) { p1T = 2; p2T = 3 + 2 * fm; }
-        else if (P.alt && yj < P.zdn && (((c % 2) + 2) % 2) === 1) { p1T = 2 - 2 * fm; p2T = 3; }
-        else { p1T = 0; p2T = 1 + 2 * fm; }
-        var p1 = g * p1T, p2 = (1 + 2 * fr) + g * (p2T - (1 + 2 * fr));
-        if (p2 - p1 < 0.004) continue;
-        var pl = poly(p1, p2);
-        if (pl.length < 3) continue;
-        d.push('M' + pl.map(function (p) { return r2(x0 + p[0] * cw) + ',' + r2(y0 + p[1] * ch); }).join('L') + 'Z'); cnt++;
-      }
-    }
-    return { bg: toHex(f.base), items: d.length ? [{ d: d.join(''), fill: toHex(f.ink) }] : [], note: cnt + ' triangles' };
-  }
-});
 
 
 /* ===== Ones de rombe: el centre emet un senyal (un color o gris) que viatja cap a fora amb retard creixent: anells en forma de rombe que s'expandeixen accelerant-se ===== */
@@ -3294,88 +3126,6 @@ EFFECTS.push({
 
 
 /* ===== Reixa: graella de cel·les amb una bombolla central que obre forats i es torna a omplir, sobre una lent esfèrica ===== */
-EFFECTS.push({
-  id: 'reixa', name: 'Reixa', colors: ['#58D064', '#D9D9D9'],
-  params: [
-    { id: 'n', label: 'Cel·les per costat (senar)', min: 3, max: 11, value: 5, div: 1, fmt: 'int' },
-    { id: 'cut', label: 'Cantonades tallades (cel·les)', min: 0, max: 3, value: 1, div: 1, fmt: 'int', hint: '1 = la graella queda en forma de creu, sense les cel·les dels quatre cantons.' },
-    { id: 'size', label: 'Mida de la graella', min: 20, max: 100, value: 45, div: 100, fmt: 'pct', hint: 'Mig costat, en % del costat curt de la imatge.' },
-    { id: 'bulge', label: 'Curvatura (lent esfèrica)', min: 1, max: 90, value: 50, div: 100, fmt: 'pct', hint: 'Amb curvatura les cel·les del centre són grans i les de les vores s\'estrenyen. Gairebé 0 = graella recta.' },
-    { id: 'cx', label: 'Centre horitzontal', min: 0, max: 100, value: 50, div: 100, fmt: 'pct' },
-    { id: 'cy', label: 'Centre vertical', min: 0, max: 100, value: 50, div: 100, fmt: 'pct' },
-    { id: 'a', label: 'Obertura dels forats (s)', min: 10, max: 300, value: 70, div: 100, fmt: 'd2' },
-    { id: 'b', label: 'Temps tot buit (s)', min: 0, max: 300, value: 80, div: 100, fmt: 'd2' },
-    { id: 'c', label: 'Creixement de les bombolles (s)', min: 10, max: 300, value: 85, div: 100, fmt: 'd2' },
-    { id: 'lag', label: 'Retard cap a les vores', min: 0, max: 100, value: 12, div: 100, fmt: 'pct', hint: 'Les cel·les de les vores van una mica endarrerides respecte a les del centre.' },
-    { id: 'rest', label: 'Repòs ple entre cicles (s)', min: 0, max: 300, value: 60, div: 100, fmt: 'd2' },
-    { id: 'every', label: 'Un cicle cada N pulsos', min: 1, max: 8, value: 1, div: 1, fmt: 'int' }
-  ],
-  bindings: [
-    { id: 'cyc', label: 'Cada pols dispara un cicle (forats i bombolles)', kind: 'pulse', src: 'onset_bass', amt: 100, max: 200 }
-  ],
-  presets: [
-    ['Reixa', { n: 5, cut: 1, size: 45, bulge: 50, cx: 50, cy: 50, a: 70, b: 80, c: 85, lag: 12, rest: 60, every: 1 }],
-    ['Gran 7×7', { n: 7, cut: 2, size: 46, bulge: 60, cx: 50, cy: 50, a: 70, b: 70, c: 80, lag: 15, rest: 60, every: 1 }],
-    ['Quadrada', { n: 5, cut: 0, size: 45, bulge: 50, cx: 50, cy: 50, a: 70, b: 80, c: 85, lag: 12, rest: 60, every: 1 }],
-    ['Recta', { n: 6, cut: 0, size: 45, bulge: 2, cx: 50, cy: 50, a: 60, b: 60, c: 70, lag: 0, rest: 50, every: 1 }]
-  ],
-  rand: { n: [3, 9], cut: [0, 2], size: [30, 48], bulge: [2, 80], a: [40, 120], b: [20, 150], c: [40, 140], lag: [0, 40], rest: [20, 120] },
-  preview: function (S, P) { var T = S.times('cyc'); return T.length > 2 ? T[2] + P.a * 0.5 : 0.5; },
-  frame: function (t0, P, S) {
-    var amt = S.amt('cyc'), Tm = S.times('cyc'), ev = (P.every | 0) || 1, cl = P.a + P.b + P.c + P.rest, i, st = null, last = -1e9, j = 0, dur = S.dur();
-    if (amt > 0.001 && Tm.length > 0) {
-      var seq = [];
-      if (dur > 0) for (i = 0; i < Tm.length; i++) seq.push(Tm[i] - dur);
-      for (i = 0; i < Tm.length; i++) seq.push(Tm[i]);
-      for (i = 0; i < seq.length; i++) { if (seq[i] > t0) break; if ((j++) % ev !== 0) continue; if (seq[i] - last >= cl) { last = seq[i]; st = seq[i]; } }
-    } else {
-      var ta = t0 + S.loops() * S.dur(), per = cl, k = Math.floor((ta - 0.4) / per); st = t0 - (ta - (k * per + 0.4));
-    }
-    return { age: st === null ? -1 : Math.round((t0 - st) * 1000) / 1000, P: { n: P.n | 0, cut: P.cut | 0, size: P.size, bulge: P.bulge, cx: P.cx, cy: P.cy, a: P.a, b: P.b, c: P.c, lag: P.lag }, ink: P.ink, base: P.base };
-  },
-  scene: function (f, W, H) {
-    var P = f.P, n = P.n % 2 === 0 ? P.n + 1 : P.n, hn = (n - 1) / 2, R = P.size * Math.min(W, H), k = Math.max(0.01, P.bulge), cx = P.cx * W, cy = P.cy * H, sk = Math.sin((hn + 0.5) * k), d = [], cnt = 0, i, j, q;
-    var ss = function (x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); }, RC = Math.SQRT1_2;
-    function mp(sx, sy) { return [cx + R * Math.sin(k * sx) / sk, cy + R * Math.sin(k * sy) / sk]; }
-    function ring(pts, ox, oy, rev) { var o = pts.map(function (p) { var m = mp(ox + p[0], oy + p[1]); return r2(m[0]) + ',' + r2(m[1]); }); if (rev) o.reverse(); return 'M' + o.join('L') + 'Z'; }
-    function sq() { var p = [], u, e = 6; for (u = 0; u < e; u++) p.push([-0.5 + u / e, -0.5]); for (u = 0; u < e; u++) p.push([0.5, -0.5 + u / e]); for (u = 0; u < e; u++) p.push([0.5 - u / e, 0.5]); for (u = 0; u < e; u++) p.push([-0.5, 0.5 - u / e]); return p; }
-    function circ(r, seg) { var p = [], u; for (u = 0; u < seg; u++) { var a = u / seg * 6.2831853; p.push([r * Math.cos(a), r * Math.sin(a)]); } return p; }
-    function clipSq(poly) { /* Sutherland-Hodgman contra el quadrat [-.5,.5]² */
-      var edges = [[1, 0, 0.5], [-1, 0, 0.5], [0, 1, 0.5], [0, -1, 0.5]], e, out = poly;
-      for (e = 0; e < 4; e++) {
-        var inp = out, nx = edges[e][0], ny = edges[e][1], lim = edges[e][2], a, b, da, db, m; out = [];
-        for (m = 0; m < inp.length; m++) { a = inp[m]; b = inp[(m + 1) % inp.length]; da = lim - (nx * a[0] + ny * a[1]); db = lim - (nx * b[0] + ny * b[1]); if (da >= 0) out.push(a); if ((da >= 0) !== (db >= 0)) { var s = da / (da - db); out.push([a[0] + (b[0] - a[0]) * s, a[1] + (b[1] - a[1]) * s]); } }
-        if (!out.length) break;
-      }
-      return out;
-    }
-    var age = f.age;
-    for (j = -hn; j <= hn; j++) for (i = -hn; i <= hn; i++) {
-      if (P.cut > 0 && Math.abs(i) >= hn - P.cut + 1 && Math.abs(j) >= hn - P.cut + 1) continue;
-      var dist = Math.sqrt(i * i + j * j) / Math.max(1, hn), a = age - P.lag * P.a * dist, A = P.a, B = P.b, C = P.c, h = 0, dd = -1, path = null;
-      if (age < 0 || a < 0) h = 0; else if (a < A) h = 0.76 * ss(a / A); else if (a < A + B) h = 0.76; else if (a < A + B + C) dd = 0.76 * ss((a - A - B) / C); else h = 0;
-      if (dd >= 0) {
-        if (dd < 0.004) continue;
-        if (dd >= RC) path = ring(sq(), i, j, false);
-        else path = ring(clipSq(circ(dd, 36)), i, j, false);
-      } else if (h <= 0.004) path = ring(sq(), i, j, false);
-      else if (h >= RC + 0.01) continue;
-      else if (h <= 0.5) path = ring(sq(), i, j, false) + ring(circ(h, 36), i, j, true);
-      else {
-        var yc = Math.sqrt(h * h - 0.25), a0 = Math.atan2(yc, 0.5), a1 = Math.atan2(0.5, yc), arc = [], u, qs = [[1, 1], [-1, 1], [-1, -1], [1, -1]];
-        path = '';
-        for (q = 0; q < 4; q++) {
-          var sx = qs[q][0], sy = qs[q][1], pts = [[0.5 * sx, 0.5 * sy], [0.5 * sx, yc * sy]];
-          for (u = 1; u < 8; u++) { var an = a0 + (a1 - a0) * u / 8; pts.push([h * Math.cos(an) * sx, h * Math.sin(an) * sy]); }
-          pts.push([yc * sx, 0.5 * sy]);
-          path += ring(pts, i, j, sx * sy < 0);
-        }
-      }
-      if (path) { d.push(path); cnt++; }
-    }
-    return { bg: toHex(f.base), items: d.length ? [{ d: d.join(''), fill: toHex(f.ink) }] : [], note: cnt + ' cel·les' };
-  }
-});
 
 (function () {
   var $ = function (id) { return document.getElementById(id); };
