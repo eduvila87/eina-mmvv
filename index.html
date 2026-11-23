@@ -2800,47 +2800,67 @@ EFFECTS.push({
   }
 });
 
-/* ===== Mandala de cercles: cadenes de cercles de mida fixa que s'expandeixen des del centre cap a fora (rosa → estrella → anell → el·lipse) i tornen enrere ===== */
+/* ===== Mandala de cercles: anells de cercles iguals (cúmul → anells → collaret → escampats). Cada pols llança una onada que va del centre cap a fora, anell per anell, i dura una fracció del compàs ===== */
 EFFECTS.push({
   id: 'mandala', name: 'Mandala de cercles', colors: ['#AE84F8', '#D9D9D9'],
   params: [
-    { id: 'rays', label: 'Cercles de la cadena interior', min: 4, max: 12, value: 8, div: 1, fmt: 'int', hint: 'Cada cadena següent en té més. Amb 8, les cadenes són de 8, 24, 40 cercles.' },
-    { id: 'rings', label: 'Cadenes', min: 1, max: 3, value: 2, div: 1, fmt: 'int' },
-    { id: 'size', label: 'Mida dels cercles', min: 3, max: 20, value: 8, div: 100, fmt: 'pct', hint: 'Diàmetre respecte al costat petit. Cada cercle té sempre la mateixa mida; només es mou.' },
-    { id: 'reach', label: 'Abast de l\'expansió', min: 25, max: 90, value: 60, div: 100, fmt: 'pct', hint: 'Fins on arriba la cadena exterior quan s\'obre. Per sobre del 50% surt del quadre.' },
-    { id: 'twist', label: 'Deformació', min: 0, max: 100, value: 60, div: 100, fmt: 'pct', hint: 'Quant es deforma la cadena mentre s\'obre: estrella en sortir i el·lipse en arribar lluny. A 0 és sempre un cercle perfecte.' },
-    { id: 'lobes', label: 'Puntes de l\'estrella', min: 2, max: 8, value: 4, div: 1, fmt: 'int' },
-    { id: 'burst', label: 'Durada del moviment', min: 2, max: 40, value: 9, div: 100, fmt: 's2', hint: 'Cada pols és una empenta: accelera i es frena. Més curta = més seca; entre pols queda quiet.' }
+    { id: 'rays', label: 'Cercles de l\'anell interior', min: 4, max: 12, value: 8, div: 1, fmt: 'int', hint: 'Cada anell següent en té més (amb 8: 8, 16, 24, 32…). Sempre en nombre parell perquè quedi simètric en mirall.' },
+    { id: 'rings', label: 'Anells', min: 1, max: 4, value: 3, div: 1 },
+    { id: 'center', label: 'Cercle central (0 = no, 1 = sí)', min: 0, max: 1, value: 1, div: 1, fmt: 'int', hint: 'El cercle central s\'encongeix i desapareix quan l\'onada obre els anells (el centre queda buit).' },
+    { id: 'size', label: 'Mida dels cercles', min: 3, max: 20, value: 8, div: 100, fmt: 'pct', hint: 'Diàmetre respecte al costat petit. Tots els cercles són iguals i només es mouen.' },
+    { id: 'reach', label: 'Abast de l\'onada', min: 25, max: 90, value: 60, div: 100, fmt: 'pct', hint: 'Fins on arriba l\'anell exterior quan s\'obre. Per sobre del 50% surt del quadre.' },
+    { id: 'wave', label: 'Retard entre anells', min: 0, max: 100, value: 35, div: 100, fmt: 'pct', hint: 'A 0 tots els anells s\'obren alhora. Amb més, cada anell s\'obre una mica després de l\'anterior, com una onada del centre cap a fora.' },
+    { id: 'span', label: 'Durada de l\'onada (part del compàs)', min: 20, max: 200, value: 90, div: 100, fmt: 'pct', hint: '100% = tarda exactament un compàs (la distància entre dos cops). S\'adapta sola al tempo de la pista.' },
+    { id: 'dyn', label: 'Sensibilitat a la força del cop', min: 0, max: 100, value: 60, div: 100, fmt: 'pct', hint: 'Amb 0 tots els cops obren igual. Amb més, els forts obren tot l\'abast i els suaus només una part.' },
+    { id: 'gate', label: 'Ignora atacs fluixos', min: 0, max: 80, value: 40, div: 100, fmt: 'pct', hint: 'Els atacs amb menys força que això no mouen res (evita moviments a destemps entre cops).' },
+    { id: 'idle', label: 'Respiració de fons', min: 0, max: 100, value: 25, div: 100, fmt: 'pct', hint: 'Una respiració suau entre cops perquè mai quedi totalment quiet.' },
+    { id: 'twist', label: 'Deformació', min: 0, max: 100, value: 30, div: 100, fmt: 'pct', hint: 'Quant es deforma l\'anell mentre s\'obre (estrella i el·lipse). A 0 és sempre un cercle perfecte.' },
+    { id: 'lobes', label: 'Puntes de l\'estrella', min: 2, max: 8, value: 4, div: 1, fmt: 'int', hint: 'Sempre parell, per mantenir la simetria.' }
   ],
   bindings: [
-    { id: 'morph', label: 'Cada pols obre o tanca la composició', kind: 'pulse', src: 'onset', amt: 100, max: 200 }
+    { id: 'morph', label: 'Cada pols llança una onada d\'anells', kind: 'pulse', src: 'onset', amt: 100, max: 200 }
   ],
   presets: [
-    ['Mandala', { rays: 8, rings: 2, size: 8, reach: 60, twist: 60, lobes: 4, burst: 9 }],
-    ['Fina', { rays: 6, rings: 3, size: 5, reach: 70, twist: 50, lobes: 4, burst: 9 }],
-    ['Gran', { rays: 8, rings: 1, size: 12, reach: 55, twist: 70, lobes: 4, burst: 12 }],
-    ['Flor', { rays: 6, rings: 2, size: 9, reach: 55, twist: 80, lobes: 6, burst: 10 }]
+    ['Mandala', { rays: 8, rings: 3, center: 1, size: 8, reach: 60, wave: 35, span: 90, dyn: 60, gate: 40, idle: 25, twist: 30, lobes: 4 }],
+    ['Collaret', { rays: 12, rings: 2, center: 0, size: 7, reach: 55, wave: 20, span: 100, dyn: 50, gate: 40, idle: 20, twist: 0, lobes: 4 }],
+    ['Fina', { rays: 6, rings: 4, center: 1, size: 5, reach: 70, wave: 45, span: 110, dyn: 60, gate: 40, idle: 25, twist: 20, lobes: 4 }],
+    ['Flor', { rays: 6, rings: 2, center: 1, size: 9, reach: 55, wave: 30, span: 90, dyn: 60, gate: 40, idle: 25, twist: 70, lobes: 6 }]
   ],
-  rand: { rays: [5, 10], rings: [1, 3], size: [5, 12], reach: [45, 75], twist: [30, 90], lobes: [2, 8], burst: [6, 14] },
-  preview: function (S, P) { var T = S.times('morph'); return T.length > 5 ? T[5] + 0.1 : 3.2; },
+  rand: { rays: [5, 10], rings: [2, 4], size: [5, 11], reach: [45, 75], wave: [15, 60], span: [60, 140], twist: [0, 70] },
+  preview: function (S, P) { var T = S.times('morph'); return T.length > 5 ? T[5] + 0.12 * (S.beat ? S.beat() : 0.5) * P.span : 3.2; },
   frame: function (t, P, S) {
-    var ph = kalSteps(S, 'morph', t, P.burst), g = ph - 2 * Math.floor(ph / 2), e = g < 1 ? g : 2 - g;
-    return { e: e, P: { rays: P.rays | 0, rings: P.rings | 0, size: P.size, reach: P.reach, twist: P.twist, lobes: P.lobes | 0 }, ink: P.ink, base: P.base };
+    var beat = S.beat ? S.beat() : 0.5, dur = Math.max(0.15, P.span * beat), rise = dur * 0.14, nr = P.rings | 0, ev = S.events('morph', t, 12), u = [], k, i;
+    var ss = function (x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
+    for (k = 0; k < nr; k++) {
+      var dl = P.wave * dur * 0.35 * k, mx = 0;
+      for (i = 0; i < ev.list.length; i++) {
+        var st = ev.list[i].s; if (st < P.gate) continue;
+        var x = Math.max(0, Math.min(1, (st - 0.55) / 0.45)), amp = 1 - P.dyn * (1 - x), a = t - ev.list[i].t - dl;
+        if (a < 0 || a > dur + dl) continue;
+        var v = a < rise ? ss(a / rise) : 1 - ss((a - rise) / (dur - rise));
+        if (v * amp > mx) mx = v * amp;
+      }
+      var br = P.idle * 0.5 * (0.5 + 0.5 * Math.sin(6.2831853 * (t / (beat * 6) - 0.1 * k)));
+      u.push(Math.round(Math.max(mx, br) * 1000) / 1000);
+    }
+    return { u: u, P: { rays: P.rays | 0, rings: nr, center: P.center | 0, size: P.size, reach: P.reach, twist: P.twist, lobes: 2 * Math.round(P.lobes / 2) || 2 }, ink: P.ink, base: P.base };
   },
   scene: function (f, W, H) {
-    var P = f.P, s = Math.min(W, H), r = P.size * s / 2, cx = W / 2, cy = H / 2, e = f.e, d = [], e0 = 0.45;
-    var A4 = P.twist * 0.55 * Math.max(0, 1 - e / e0), A2 = P.twist * 0.6 * Math.max(0, (e - e0) / (1 - e0));
+    var P = f.P, s = Math.min(W, H), r = P.size * s / 2, cx = W / 2, cy = H / 2, d = [], e0 = 0.45, ss = function (x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
+    function circ(x, y, q) { d.push('M' + r2(x - q) + ',' + r2(y) + 'a' + r2(q) + ',' + r2(q) + ' 0 1,0 ' + r2(2 * q) + ',0a' + r2(q) + ',' + r2(q) + ' 0 1,0 ' + r2(-2 * q) + ',0Z'); }
+    if (P.center && f.u.length) { var cs = 1 - ss(f.u[0] / 0.5); if (cs > 0.02) circ(cx, cy, r * cs); }
     for (var k = 0; k < P.rings; k++) {
-      var N = P.rays * (1 + 2 * k), fk = P.rings > 1 ? 0.5 + 0.5 * k / (P.rings - 1) : 1, R = (r * 1.1 + (P.reach * s - r * 1.1) * e) * fk;
+      var e = f.u[k], N = 2 * Math.round(P.rays * (1 + k) / 2), fk = P.rings > 1 ? 0.45 + 0.55 * k / (P.rings - 1) : 1, off = (k % 2) * 0.5;
+      var A4 = P.twist * 0.55 * Math.max(0, 1 - e / e0), A2 = P.twist * 0.6 * Math.max(0, (e - e0) / (1 - e0));
+      var R0 = r * (1.15 + 1.9 * k), R = R0 + (Math.max(R0, P.reach * s * fk) - R0) * e;
       for (var j = 0; j < N; j++) {
-        var th = 2 * Math.PI * j / N, rho = R * (1 + A4 * Math.cos(P.lobes * th) + A2 * Math.cos(2 * th)), x = cx + rho * Math.cos(th), y = cy + rho * Math.sin(th);
-        d.push('M' + r2(x - r) + ',' + r2(y) + 'a' + r2(r) + ',' + r2(r) + ' 0 1,0 ' + r2(2 * r) + ',0a' + r2(r) + ',' + r2(r) + ' 0 1,0 ' + r2(-2 * r) + ',0Z');
+        var th = 2 * Math.PI * (j + off) / N, rho = R * (1 + A4 * Math.cos(P.lobes * th) + A2 * Math.cos(2 * th));
+        circ(cx + rho * Math.cos(th), cy + rho * Math.sin(th), r);
       }
     }
     return { bg: toHex(f.base), items: [{ d: d.join(''), fill: toHex(f.ink) }], note: d.length + ' cercles' };
   }
 });
-
 
 /* ===== Taques difuminades: camp suau que evoluciona; es veu on supera un llindar, amb vora clara i cor fosc difuminats (ràster suau, també a l'SVG) ===== */
 
