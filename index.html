@@ -182,8 +182,8 @@ summary::-webkit-details-marker{display:none}
  </footer>
  <aside class="side"><div class="panes">
   <div class="group"><h3>1 · Format</h3>
-   <select id="pFormat"><option value="ig">Instagram vertical · 1080×1382</option><option value="ig45">Instagram feed 4:5 · 1080×1350</option><option value="story">Instagram story · 1080×1920</option><option value="sq">Quadrat · 1080×1080</option><option value="p23">Cartell 2:3 · 1080×1620</option><option value="custom">Personalitzat…</option></select>
-   <div class="two" id="pCustom" style="display:none;margin-top:8px"><input class="num" id="pCW" type="number" min="200" max="4000" value="1080" aria-label="Amplada"><input class="num" id="pCH" type="number" min="200" max="4000" value="1382" aria-label="Alçada"></div>
+   <select id="pFormat"><option value="ig45">Instagram post · 1080×1350</option><option value="story">Instagram story · 1080×1920</option><option value="sq">Quadrat · 1080×1080</option><option value="p23">Cartell 2:3 · 1080×1620</option><option value="custom">Personalitzat…</option></select>
+   <div class="two" id="pCustom" style="display:none;margin-top:8px"><input class="num" id="pCW" type="number" min="200" max="4000" value="1080" aria-label="Amplada"><input class="num" id="pCH" type="number" min="200" max="4000" value="1350" aria-label="Alçada"></div>
   </div>
   <div class="group"><h3>2 · Disposició</h3>
    <div class="lays" id="pLays"></div>
@@ -3589,8 +3589,8 @@ EFFECTS.push({
      la seva textura, els seus paràmetres i el seu so. Comparteix amb
      l'eina d'una textura: EFFECTS, paintScene, sceneParts, download…
      ==================================================================== */
-  var PO = { active: false, fmt: 'ig', W: 1080, H: 1382, layout: 'T1B2', d1: 0.42, d2: 0.5, sel: 0, zones: [], over: null, overUrl: '', playing: false, offset: 0, startAt: 0, raf: 0, exporting: false, live: true, cancel: false, master: null, shown: false };
-  var FORMATS = { ig: [1080, 1382], ig45: [1080, 1350], story: [1080, 1920], sq: [1080, 1080], p23: [1080, 1620] };
+  var PO = { active: false, fmt: 'ig45', W: 1080, H: 1350, layout: 'T1B2', d1: 0.42, d2: 0.5, sel: 0, zones: [], over: null, overUrl: '', playing: false, offset: 0, startAt: 0, raf: 0, exporting: false, live: true, cancel: false, master: null, shown: false };
+  var FORMATS = { ig45: [1080, 1350], story: [1080, 1920], sq: [1080, 1080], p23: [1080, 1620] };
   var LAYOUTS = [['T1B2', 'Una franja a dalt, dues a sota', 0.42, 0.5], ['T2B1', 'Dues franges a dalt, una a sota', 0.7, 0.75], ['L1R2', 'Una a l\'esquerra, dues a la dreta', 0.5, 0.5], ['L2R1', 'Dues a l\'esquerra, una a la dreta', 0.5, 0.5], ['H3', 'Tres bandes horitzontals', 0.33, 0.66], ['V3', 'Tres columnes', 0.33, 0.66]];
   var ZDEF = [['blur', '#FE6B6B', '#D9D9D9'], ['dots', '#58D064', '#D9D9D9'], ['rombes', '#FDF993', '#D9D9D9']];
   function pStatus(m, err) { var e = $('pStatus'); e.textContent = (err ? '⚠ ' : '') + m; e.style.color = err ? '#c62828' : ''; }
@@ -3878,7 +3878,7 @@ EFFECTS.push({
   }
   function pApplyFormat() {
     var f = $('pFormat').value; $('pCustom').style.display = f === 'custom' ? 'grid' : 'none';
-    if (f === 'custom') { PO.W = Math.max(200, Math.min(4000, +$('pCW').value || 1080)); PO.H = Math.max(200, Math.min(4000, +$('pCH').value || 1382)); } else { PO.W = FORMATS[f][0]; PO.H = FORMATS[f][1]; }
+    if (f === 'custom') { PO.W = Math.max(200, Math.min(4000, +$('pCW').value || 1080)); PO.H = Math.max(200, Math.min(4000, +$('pCH').value || 1350)); } else { PO.W = FORMATS[f][0]; PO.H = FORMATS[f][1]; }
     var s = pCanvasSize(), cv = $('pCv'); cv.width = s[0]; cv.height = s[1]; PO.fmt = f; pFit(); pOverlay(); pRender();
   }
   ['pFormat', 'pCW', 'pCH'].forEach(function (id) { $(id).addEventListener('input', pApplyFormat); });
@@ -4020,7 +4020,7 @@ EFFECTS.push({
         var o = JSON.parse(fr.result); if (!o.franges || o.franges.length !== 3) throw new Error('fitxer de cartell no vàlid');
         if (PO.playing) pPause(); pStopSources();
         PO.layout = LAYOUTS.some(function (l) { return l[0] === o.disposicio; }) ? o.disposicio : 'T1B2'; PO.d1 = o.d1; PO.d2 = o.d2;
-        $('pFormat').value = FORMATS[o.format] || o.format === 'custom' ? o.format : 'ig'; if (o.format === 'custom') { $('pCW').value = o.W; $('pCH').value = o.H; }
+        $('pFormat').value = FORMATS[o.format] || o.format === 'custom' ? o.format : 'ig45'; if (o.format === 'custom') { $('pCW').value = o.W; $('pCH').value = o.H; }
         o.franges.forEach(function (q, i) {
           var z = PO.zones[i]; z.E = effById(q.textura); z.saved = {}; zDefaults(z, null, null);
           z.E.params.forEach(function (d) { if (q.valors.p && q.valors.p[d.id] !== undefined) z.vals.p[d.id] = q.valors.p[d.id]; });
