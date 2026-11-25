@@ -2612,7 +2612,7 @@ EFFECTS.push({
     { id: 'mix', label: 'Barres que pugen', min: 0, max: 100, value: 0, div: 100, fmt: 'pct' },
     { id: 'step', label: 'Avanç per pols', min: 5, max: 100, value: 25, div: 100, fmt: 'pct', hint: 'Quina part d\'un cicle de degradat avança a cada pols.' },
     { id: 'soft', label: 'Suavitat de l\'atac', min: 0, max: 100, value: 60, div: 100, fmt: 'pct', hint: 'Amb més suavitat el degradat llisca; amb menys fa un salt sec.' },
-    { id: 'speed', label: 'Moviment de fons (sense so)', min: 0, max: 200, value: 50, div: 100, fmt: 'pct', hint: 'Baixada lenta i constant que no s\'atura mai, ni quan no hi ha so.' },
+    { id: 'speed', label: 'Moviment de fons (sense so)', min: 0, max: 200, value: 200, div: 100, fmt: 'pct', hint: 'Baixada lenta i constant que no s\'atura mai, ni quan no hi ha so.' },
     { id: 'drive', label: 'Empenta del volum', min: 0, max: 300, value: 150, div: 100, fmt: 'pct', hint: 'Com més volum té la pista, més ràpid baixa el degradat; quan el so s\'apaga, frena suaument fins al moviment de fons.' },
     { id: 'seed', label: 'Llavor', min: 0, max: 99, value: 6, div: 1, fmt: 'int' }
   ],
@@ -2621,11 +2621,11 @@ EFFECTS.push({
     { id: 'vol', label: 'El volum accelera el degradat', kind: 'level', src: 'loud', amt: 100, max: 200, smooth: 0.4 }
   ],
   presets: [
-    ['Suau', { bars: 5, shape: 1, periods: 15, dvar: 60, quant: 0, poly: 70, mix: 0, step: 25, soft: 60, speed: 50, drive: 150, seed: 6 }],
-    ['Cascada', { bars: 5, shape: 2, periods: 12, dvar: 55, quant: 0, poly: 70, mix: 0, step: 30, soft: 55, speed: 50, drive: 150, seed: 11 }],
-    ['Set barres', { bars: 7, shape: 3, periods: 15, dvar: 60, quant: 0, poly: 80, mix: 0, step: 25, soft: 60, speed: 50, drive: 150, seed: 2 }]
+    ['Suau', { bars: 5, shape: 1, periods: 15, dvar: 60, quant: 0, poly: 70, mix: 0, step: 25, soft: 60, speed: 200, drive: 150, seed: 6 }],
+    ['Cascada', { bars: 5, shape: 2, periods: 12, dvar: 55, quant: 0, poly: 70, mix: 0, step: 30, soft: 55, speed: 200, drive: 150, seed: 11 }],
+    ['Set barres', { bars: 7, shape: 3, periods: 15, dvar: 60, quant: 0, poly: 80, mix: 0, step: 25, soft: 60, speed: 200, drive: 150, seed: 2 }]
   ],
-  rand: { bars: [3, 12], shape: [1, 3], periods: [8, 28], dvar: [30, 80], poly: [30, 100], mix: [0, 40], step: [15, 50], speed: [0, 50], seed: [0, 99] },
+  rand: { bars: [3, 12], shape: [1, 3], periods: [8, 28], dvar: [30, 80], poly: [30, 100], mix: [0, 40], step: [15, 50], seed: [0, 99] },
   preview: function (S, P) { var T = S.times('flow'); return T.length > 5 ? T[5] + 0.5 : 3.2; },
   frame: function (t, P, S) {
     var nb = P.bars | 0, fa = Math.min(1.5, S.amt('flow')), ev = S.events('flow', t, 64), att = 0.08 + P.soft * 1.6, surge = Math.max(0, ev.n - ev.list.length) * 0.8;
@@ -3938,8 +3938,9 @@ EFFECTS.push({
   ['zInk', 'zBase', 'zVol', 'zMute', 'zSolo', 'zMode', 'zSens', 'zDiv'].forEach(function (id) { $(id).addEventListener('input', zOnUI); });
   $('zEffect').addEventListener('change', function () {
     var z = PO.zones[PO.sel], next = effById($('zEffect').value); if (next === z.E) return;
-    zReadUI(z); z.saved[z.E.id] = JSON.parse(JSON.stringify(z.vals)); z.E = next;
+    zReadUI(z); z.saved[z.E.id] = JSON.parse(JSON.stringify(z.vals)); var keepInk = z.vals.ink, keepBase = z.vals.base; z.E = next;
     if (z.saved[next.id]) { z.vals = z.saved[next.id]; zRecompute(z); } else zDefaults(z, null, null);
+    z.vals.ink = keepInk; z.vals.base = keepBase; zRecompute(z); /* en canviar de textura la franja conserva els seus colors (els de l'harmonia) */
     z.glcv = null; z.g = null; z.gp = null; zBuildUI(z); pTabs(); pDrawWave(); pRender();
   });
   $('zSurprise').onclick = function () {
