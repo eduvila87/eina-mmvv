@@ -18,7 +18,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
 #mainStatus{flex:1;text-align:center;color:var(--mute);font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .link{color:var(--mute);font-size:12px;padding:6px 0}.link:hover{color:var(--ink)}
 .stage{grid-column:1;grid-row:2;display:flex;align-items:center;justify-content:center;padding:6px 24px 14px;min-height:0;min-width:0}
-.stage canvas{max-width:100%;max-height:100%;display:block;background:var(--stage)}
+.stage{position:relative}.stage canvas{max-width:100%;max-height:100%;display:block;background:var(--stage)}
 .transport{grid-column:1;grid-row:3;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:0 24px 16px}
 .ctl{display:flex;align-items:center;gap:6px}
 .round{width:36px;height:36px;border-radius:50%;background:var(--ink);color:#fff;font-size:13px;display:grid;place-items:center}
@@ -110,7 +110,7 @@ summary::-webkit-details-marker{display:none}
 <body>
 <div class="app" id="app">
  <header class="top"><div class="brandbox"><span class="tabs" role="tablist"><button class="tab on" data-view="tex">Textura</button><button class="tab" data-view="car">Cartell</button></span><select id="effectSel" aria-label="Efecte"></select></div><span id="mainStatus">Previsualització sense àudio. Importa una pista per sincronitzar-la.</span></header>
- <main class="stage"><canvas id="stageGL"></canvas><canvas id="stage2D" style="display:none"></canvas></main>
+ <main class="stage" id="stageMain"><canvas id="stageGL"></canvas><canvas id="stage2D" style="display:none"></canvas><img id="tOver" alt="" style="position:absolute;display:none;pointer-events:none"></main>
  <footer class="transport">
   <div class="ctl"><button class="round" id="play" aria-label="Reproduir o pausar">▶</button><button class="sq" id="stop" aria-label="Aturar">■</button><span id="clock">00:00.0 / 00:00.0</span></div>
   <div id="wave" class="wave" title="Clica per saltar a un moment"><canvas id="waveCanvas" width="1400" height="44"></canvas><div id="wavehead" class="wavehead"></div></div>
@@ -148,16 +148,25 @@ summary::-webkit-details-marker{display:none}
      <div class="cols"><label><input id="ink" type="color" value="#58D064">Color</label><label><input id="base" type="color" value="#D9D9D9">Fons</label></div>
     </div>
     <div class="group"><h3 class="h-sub">Format</h3>
-     <select id="aspect"><option value="2:3">Cartell 2:3</option><option value="4:5" selected>Vertical 4:5</option><option value="1:1">Quadrat 1:1</option><option value="16:9">Horitzontal 16:9</option><option value="9:16">Vertical 9:16</option></select>
+     <select id="aspect"><option value="2:3">Cartell 2:3</option><option value="4:5" selected>Instagram post · 1080×1350</option><option value="1:1">Quadrat 1:1</option><option value="16:9">Horitzontal 16:9</option><option value="9:16">Instagram story · 1080×1920</option><option value="custom">Personalitzat…</option></select>
+     <div class="two" id="cusBox" style="display:none;margin-top:8px"><input id="cusW" type="number" min="200" max="4000" value="1080" aria-label="Ample en píxels"><input id="cusH" type="number" min="200" max="4000" value="1080" aria-label="Alt en píxels"></div>
      <div style="margin-top:14px"><button class="btn quiet" id="reset">Valors per defecte</button></div>
+    </div>
+    <div class="group"><h3>Capa superior (PNG transparent)</h3>
+     <label class="file" style="background:#fff;color:var(--ink)">Importar PNG<input id="tOverFile" type="file" accept="image/png,image/*"></label>
+     <div id="tOverName" class="stat">Cap PNG carregat</div>
+     <div class="row" style="margin-top:8px"><label class="chk"><input id="tOverShow" type="checkbox" checked> Mostra-la al previ</label></div>
+     <div class="row"><label class="chk"><input id="tOverExp" type="checkbox" checked> Inclou-la a l'exportació (PNG, SVG i MP4)</label></div>
+     <div style="margin-top:8px"><button class="btn quiet" id="tOverDel" style="display:none">Treure el PNG</button></div>
+     <p class="hint">S'estira per cobrir tot el quadre: prepara'l amb la mateixa proporció que el format.</p>
     </div>
     <div class="group"><h3>5 · Exportar fotograma</h3>
      <p class="hint" style="margin:0 0 12px">Atura l'animació (■, Ⅱ o la tecla espai) i s'exporta aquell instant.</p>
-     <div class="row"><div class="lab"><label for="outSize">Mida (costat llarg)</label></div><select id="outSize"><option value="1920" selected>1920 px</option><option value="1280">1280 px</option><option value="2400">2400 px</option><option value="3840">3840 px</option></select></div>
+     <div class="row"><div class="lab"><label for="outSize">Mida (costat llarg)</label></div><select id="outSize"><option value="exact" hidden disabled>Mida del format</option><option value="1920" selected>1920 px</option><option value="1280">1280 px</option><option value="2400">2400 px</option><option value="3840">3840 px</option></select></div>
      <div class="btns"><button class="btn solid" id="exportSvg">SVG</button><button class="btn" id="exportPng">PNG</button></div>
     </div>
     <div class="group"><h3>Exportar vídeo MP4</h3>
-     <div class="row"><div class="lab"><label for="vidRes">Resolució (costat llarg)</label></div><select id="vidRes"><option value="3840" selected>4K UHD · 3840 px</option><option value="2560">2K · 2560 px</option><option value="1920">Full HD · 1920 px</option></select></div>
+     <div class="row"><div class="lab"><label for="vidRes">Resolució (costat llarg)</label></div><select id="vidRes"><option value="exact" hidden disabled>Mida del format</option><option value="3840" selected>4K UHD · 3840 px</option><option value="2560">2K · 2560 px</option><option value="1920">Full HD · 1920 px</option></select></div>
      <div class="row"><div class="lab"><label for="vidFps">Fotogrames per segon</label></div><select id="vidFps"><option value="30" selected>30</option><option value="60">60</option></select></div>
      <div class="row"><div class="lab"><label for="videoDur">Durada</label></div><select id="videoDur"><option value="full">Pista sencera</option><option value="10">10 s</option><option value="30">30 s</option><option value="60">60 s</option></select></div>
      <button class="btn solid" id="exportMp4">Exportar MP4 (H.264 + AAC)</button>
@@ -3268,9 +3277,28 @@ EFFECTS.push({
     gl.enableVertexAttribArray(r.a); gl.vertexAttribPointer(r.a, 2, gl.FLOAT, false, 0, 0); curGL = r;
   }
   function hex(h) { return [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255]; }
-  function sizeFor(longSide) { var a = $('aspect').value.split(':').map(Number), w = a[0], h = a[1], k = longSide / Math.max(w, h); return [Math.round(w * k / 2) * 2, Math.round(h * k / 2) * 2]; }
+  function cusDims() { var w = Math.max(200, Math.min(4000, Math.round(+$('cusW').value) || 1080)), h = Math.max(200, Math.min(4000, Math.round(+$('cusH').value) || 1080)); return [w, h]; }
+  function aspectDims() { var v = $('aspect').value; return v === 'custom' ? cusDims() : v.split(':').map(Number); }
+  function fixedSize() { var v = $('aspect').value; if (v === '4:5') return [1080, 1350]; if (v === '9:16') return [1080, 1920]; if (v === 'custom') { var c = cusDims(); return [Math.round(c[0] / 2) * 2, Math.round(c[1] / 2) * 2]; } return null; }
+  function sizeFor(longSide) { var a = aspectDims(), w = a[0], h = a[1], k = longSide / Math.max(w, h); return [Math.round(w * k / 2) * 2, Math.round(h * k / 2) * 2]; }
+  function outSz(id, cap) { var v = $(id).value, f = fixedSize(); if (v === 'exact' && f) return f; return sizeFor(Math.min(cap || 1e9, +v || 1920)); }
+  function syncExact(pick) { /* l'opció «Mida del format» només existeix als formats amb mida en píxels */
+    var f = fixedSize(); ['outSize', 'vidRes'].forEach(function (id) {
+      var sel = $(id), o = sel.querySelector('option[value="exact"]'); o.hidden = o.disabled = !f; if (f) o.textContent = 'Mida del format · ' + f[0] + '×' + f[1];
+      if (f && pick) sel.value = 'exact'; else if (!f && sel.value === 'exact') sel.value = id === 'outSize' ? '1920' : '3840';
+    });
+    $('cusBox').style.display = $('aspect').value === 'custom' ? '' : 'none';
+  }
+  /* capa superior PNG (Textura) */
+  var tOver = { img: null, url: '' };
+  function tOverPos() { var im = $('tOver'), m = $('stageMain'); if (!tOver.img || !$('tOverShow').checked) { im.style.display = 'none'; return; } var r = stage.getBoundingClientRect(), p = m.getBoundingClientRect(); im.style.cssText = 'position:absolute;pointer-events:none;display:block;left:' + (r.left - p.left) + 'px;top:' + (r.top - p.top) + 'px;width:' + r.width + 'px;height:' + r.height + 'px'; }
+  function tOverExp() { return tOver.img && $('tOverExp').checked ? tOver.img : null; }
+  function composeOut(w, h) { /* fotograma del canvas + PNG superior, si cal */
+    var ov = tOverExp(); if (!ov) return stage;
+    var c = composeOut.c || (composeOut.c = document.createElement('canvas')); c.width = w; c.height = h; var x = c.getContext('2d'); x.drawImage(stage, 0, 0, w, h); x.drawImage(ov, 0, 0, w, h); return c;
+  }
   function applySize(w, h) { cvGL.width = cv2D.width = w; cvGL.height = cv2D.height = h; if (gl) gl.viewport(0, 0, w, h); }
-  function applyDisplaySize() { var s = sizeFor(1000); dispW = s[0]; dispH = s[1]; applySize(dispW, dispH); }
+  function applyDisplaySize() { var s = sizeFor(1000); dispW = s[0]; dispH = s[1]; applySize(dispW, dispH); tOverPos(); }
   function activateStage() { var useGLc = !!E.gl; stage = useGLc ? cvGL : cv2D; cvGL.style.display = useGLc ? '' : 'none'; cv2D.style.display = useGLc ? 'none' : ''; if (useGLc) useGL(E); }
 
   /* ================= senyals del so ================= */
@@ -3336,7 +3364,17 @@ EFFECTS.push({
   function onUI() { readParams(); if (!playing) render(); }
   ['paramBox', 'bindBox'].forEach(function (id) { $(id).addEventListener('input', onUI); });
   ['ink', 'base', 'smooth', 'shift'].forEach(function (id) { $(id).addEventListener('input', onUI); });
-  $('aspect').addEventListener('input', function () { readParams(); applyDisplaySize(); if (!playing) render(); });
+  $('aspect').addEventListener('input', function () { syncExact(true); readParams(); applyDisplaySize(); if (!playing) render(); });
+  ['cusW', 'cusH'].forEach(function (id) { $(id).addEventListener('input', function () { syncExact(true); applyDisplaySize(); if (!playing) render(); }); });
+  window.addEventListener('resize', tOverPos); if (window.ResizeObserver) new ResizeObserver(tOverPos).observe($('stageMain'));
+  $('tOverFile').addEventListener('change', function (e) {
+    var f = e.target.files[0]; if (!f) return; var fr = new FileReader();
+    fr.onload = function () { var im = new Image(); im.onload = function () { tOver.img = im; tOver.url = fr.result; $('tOver').src = fr.result; $('tOverName').textContent = f.name + ' · ' + im.naturalWidth + '×' + im.naturalHeight; $('tOverDel').style.display = ''; tOverPos(); }; im.onerror = function () { $('tOverName').textContent = 'No s\'ha pogut llegir aquest PNG.'; }; im.src = fr.result; };
+    fr.readAsDataURL(f); e.target.value = '';
+  });
+  $('tOverShow').addEventListener('input', tOverPos);
+  $('tOverDel').onclick = function () { tOver.img = null; tOver.url = ''; $('tOver').removeAttribute('src'); $('tOverName').textContent = 'Cap PNG carregat'; $('tOverDel').style.display = 'none'; tOverPos(); };
+  syncExact(true);
   ['mode', 'sens', 'div', 'offbeat'].forEach(function (id) { $(id).addEventListener('input', function () { readParams(); recomputeTriggers(); if (!playing) render(); }); });
 
   EFFECTS.forEach(function (e) { var o = document.createElement('option'); o.value = e.id; o.textContent = e.name; $('effectSel').appendChild(o); });
@@ -3352,7 +3390,7 @@ EFFECTS.push({
   $('reset').onclick = function () {
     var o = {}; E.params.forEach(function (d) { o[d.id] = d.value; }); setVals(o, true);
     E.bindings.forEach(function (b) { $('b_' + b.id + '_src').value = b.src; $('b_' + b.id + '_amt').value = b.amt; });
-    $('ink').value = E.colors[0]; $('base').value = E.colors[1]; $('smooth').value = 100; $('shift').value = 0; $('offbeat').checked = false; $('aspect').value = '4:5';
+    $('ink').value = E.colors[0]; $('base').value = E.colors[1]; $('smooth').value = 100; $('shift').value = 0; $('offbeat').checked = false; $('aspect').value = '4:5'; syncExact(true);
     readParams(); applyDisplaySize(); recomputeTriggers(); if (!playing) render();
   };
 
@@ -3527,21 +3565,21 @@ EFFECTS.push({
     sceneSvg.stats = { note: sc.note || '', bytes: svg.length }; return svg;
   }
   $('exportSvg').onclick = function () {
-    var s = sizeFor(+$('outSize').value), t = viewTime(), t0 = Date.now(), svg;
-    try { svg = sceneSvg(t, s[0], s[1]); } catch (e) { showErr('SVG: ' + e.message); return; }
+    var s = outSz('outSize'), t = viewTime(), t0 = Date.now(), svg;
+    try { svg = sceneSvg(t, s[0], s[1]); var ovs = tOverExp(); if (ovs) svg = svg.replace(/<\/svg>\s*$/, '<image id="capa-superior" width="' + s[0] + '" height="' + s[1] + '" preserveAspectRatio="none" href="' + tOver.url + '"/>\n</svg>\n'); } catch (e) { showErr('SVG: ' + e.message); return; }
     download(new Blob([svg], { type: 'image/svg+xml' }), 'op-art-' + E.id + '.svg');
     setStatus('SVG exportat · ' + s[0] + '×' + s[1] + ' · ' + sceneSvg.stats.note + ' · ' + Math.round(sceneSvg.stats.bytes / 1024) + ' KB · moment ' + t.toFixed(2) + ' s (' + (Date.now() - t0) + ' ms)');
   };
   $('exportPng').onclick = function () {
-    var s = sizeFor(+$('outSize').value), t = viewTime(); applySize(s[0], s[1]); draw(t);
-    stage.toBlob(function (b) { download(b, 'op-art-' + E.id + '.png'); applyDisplaySize(); render(); }, 'image/png');
+    var s = outSz('outSize'), t = viewTime(); applySize(s[0], s[1]); draw(t);
+    composeOut(s[0], s[1]).toBlob(function (b) { download(b, 'op-art-' + E.id + '.png'); applyDisplaySize(); render(); }, 'image/png');
   };
   $('exportVideo').onclick = async function () {
     if (!buf) { $('videoStatus').textContent = 'Primer importa un fitxer MP3 o WAV.'; return; }
     if (recording) return;
     var mime = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find(function (t) { return window.MediaRecorder && MediaRecorder.isTypeSupported(t); });
     if (!mime) { $('videoStatus').textContent = 'Aquest navegador no pot gravar vídeo WebM.'; return; }
-    var s = sizeFor(Math.min(1920, +$('vidRes').value)), d = $('videoDur').value, lim = d === 'full' ? duration : Math.min(duration, +d);
+    var s = outSz('vidRes', 1920), d = $('videoDur').value, lim = d === 'full' ? duration : Math.min(duration, +d);
     await ensureCtx(); if (playing) pausePlayback();
     var wasLoop = loop; loop = false; offset = 0; applySize(s[0], s[1]);
     var vs = stage.captureStream(30), ms = new MediaStream(vs.getVideoTracks().concat(recDest.stream.getAudioTracks()));
@@ -3584,7 +3622,7 @@ EFFECTS.push({
     $('exportMp4').disabled = true; $('exportVideo').disabled = true; $('cancelExport').style.display = 'block';
     var fps = +$('vidFps').value, d = $('videoDur').value, lim = d === 'full' ? duration : Math.min(duration, +d), nFrames = Math.max(1, Math.floor(lim * fps)), encErr = null, venc = null, aenc = null;
     try {
-      var s0 = sizeFor(+$('vidRes').value), vc = await pickVideoConfig(s0[0], s0[1], fps);
+      var s0 = outSz('vidRes'), vc = await pickVideoConfig(s0[0], s0[1], fps);
       if (!vc) throw new Error('el navegador no pot codificar H.264 a aquesta mida');
       var w = vc.w, h = vc.h, sr = buf.sampleRate, nch = Math.min(2, buf.numberOfChannels), audioBuf = buf, acodec = 'aac';
       var acfg = { codec: 'mp4a.40.2', sampleRate: sr, numberOfChannels: nch, bitrate: 192000 }, sup = await AudioEncoder.isConfigSupported(acfg).catch(function () { return { supported: false }; });
@@ -3604,7 +3642,7 @@ EFFECTS.push({
         if (cancelFlag) throw new Error('exportació cancel·lada');
         if (encErr) throw encErr;
         draw(i / fps);
-        var vf = new VideoFrame(stage, { timestamp: Math.round(i * 1e6 / fps), duration: Math.round(1e6 / fps) });
+        var vf = new VideoFrame(composeOut(w, h), { timestamp: Math.round(i * 1e6 / fps), duration: Math.round(1e6 / fps) });
         venc.encode(vf, { keyFrame: i % (fps * 2) === 0 }); vf.close();
         while (venc.encodeQueueSize > 8) await sleep(4);
         if (i % 4 === 0) {
